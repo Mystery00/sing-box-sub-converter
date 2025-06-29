@@ -1,12 +1,8 @@
-## 项目架构
+# sing-box-sub-converter
 
 sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具，它提供了 HTTP API 接口，可以从多个订阅源获取节点信息，并将其合并到自定义的配置模板中。
 
-## 如何运行
-
-```shell
-docker run -d mystery0/sing-box-sub-converter:latest
-```
+## 项目架构
 
 ### 核心组件
 
@@ -14,34 +10,59 @@ docker run -d mystery0/sing-box-sub-converter:latest
    - 提供 HTTP API 接口
    - 处理配置生成请求
    - 支持快速启动模式
+   - 静态文件服务（提供Web界面）
 
 2. **转换器 (Converter)**
-   - 支持多种订阅格式解析
+   - 支持多种订阅格式解析（Clash、普通文本等）
    - 将不同格式的节点转换为 sing-box 格式
    - 处理节点标签、前缀和表情符号
+   - 自动处理重复节点名称
 
 3. **模板系统 (Template)**
    - 加载配置模板
    - 将节点合并到模板中
-   - 支持节点过滤功能
+   - 支持节点过滤功能（包含/排除关键词）
+   - 支持按订阅标签分组节点
 
 4. **订阅获取 (Fetcher)**
-   - 从远程或本地获取订阅内容
+   - 从远程URL获取订阅内容
+   - 从本地文件获取订阅内容
    - 支持自定义 User-Agent
+   - 支持安全目录限制（对本地文件）
 
 5. **配置管理 (Config)**
    - 管理全局配置和订阅信息
    - 支持多个订阅源
+   - 配置文件热重载（自动检测配置变更）
+   - 提供默认配置生成
 
 ### 数据流
 
 1. 客户端发送请求到 API 接口
 2. 服务器加载配置模板
-3. 获取订阅内容
-4. 解析订阅内容为节点列表
+3. 获取订阅内容（远程URL或本地文件）
+4. 尝试不同解析器解析订阅内容为节点列表
 5. 处理节点（添加前缀、表情符号等）
-6. 将节点合并到配置模板中
-7. 返回最终配置给客户端
+6. 应用过滤规则（如果模板中定义）
+7. 将节点合并到配置模板中
+8. 返回最终配置给客户端
+
+## 如何运行
+
+### Docker 方式
+
+```shell
+docker run -d -p 5000:5000 mystery0/sing-box-sub-converter:latest
+```
+
+### 环境变量
+
+| 环境变量 | 描述 | 默认值 |
+|---------|------|-------|
+| SERVER_PORT | 服务器监听端口 | 5000 |
+| TEMPLATE_DIR | 配置模板目录 | config_templates |
+| SUB_CONFIG_HOME | 订阅配置文件目录 | 当前工作目录 |
+| SAFE_DIR | 本地文件订阅的安全目录 | 无（不限制） |
 
 ## API 接口
 
@@ -155,9 +176,112 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 }
 ```
 
+## 支持的订阅格式
+
+### Clash 格式
+支持解析 Clash 配置文件中的代理节点，包括以下协议：
+- Shadowsocks
+- Trojan
+- VLESS
+- Hysteria2
+
+### 普通文本格式
+支持解析包含以下格式的文本文件：
+- URI 格式的 Shadowsocks 链接 (ss://)
+- 其他协议的链接（根据前缀自动识别）
+
+## 模板示例
+
+### 基本模板
+```json
+{
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": ["{all}"]
+    }
+  ]
+}
+```
+
+### 分组模板
+```json
+{
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": ["auto", "manual"]
+    },
+    {
+      "type": "urltest",
+      "tag": "auto",
+      "outbounds": ["{all}"]
+    },
+    {
+      "type": "selector",
+      "tag": "manual",
+      "outbounds": ["{all}"]
+    }
+  ]
+}
+```
+
+### 带过滤器的模板
+```json
+{
+  "outbounds": [
+    {
+      "type": "selector",
+      "tag": "proxy",
+      "outbounds": ["hk", "jp", "sg", "us"]
+    },
+    {
+      "type": "selector",
+      "tag": "hk",
+      "filter": [
+        {
+          "action": "include",
+          "keywords": ["香港", "HK", "Hong Kong"],
+          "for": "all"
+        }
+      ],
+      "outbounds": ["{all}"]
+    },
+    {
+      "type": "selector",
+      "tag": "jp",
+      "filter": [
+        {
+          "action": "include",
+          "keywords": ["日本", "JP", "Japan"],
+          "for": "all"
+        }
+      ],
+      "outbounds": ["{all}"]
+    }
+  ]
+}
+```
+
+## Web 界面
+
+sing-box-sub-converter 提供了一个简单的 Web 界面，可通过浏览器访问：
+
+```
+http://localhost:5000/
+```
+
+通过 Web 界面，您可以：
+- 查看可用的配置模板
+- 生成配置文件
+- 测试订阅链接
+
 ## 使用方法
 
 1. 配置 `providers.json` 文件，添加订阅源
 2. 创建或修改配置模板
 3. 启动服务器（默认端口 5000，可通过 SERVER_PORT 环境变量修改）
-4. 通过 API 接口获取生成的配置
+4. 通过 API 接口或 Web 界面获取生成的配置
+5. 将生成的配置保存为 JSON 文件并加载到 sing-box 中使用
