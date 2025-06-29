@@ -5,9 +5,11 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
 	"sing-box-sub-converter/internal/config"
 	"sing-box-sub-converter/internal/converter"
 	"sing-box-sub-converter/internal/template"
+	"strings"
 )
 
 type Server struct {
@@ -35,6 +37,12 @@ func NewServer() *Server {
 }
 
 func (s *Server) setupRoutes() {
+	s.router.Static("/static", "./static")
+	s.router.GET("/", func(c *gin.Context) {
+		c.File("./static/index.html")
+	})
+
+	// API routes
 	s.router.GET("/api/generate", s.handleGenerate)
 	s.router.GET("/api/quickstart/*url", s.handleQuickstart)
 }
@@ -95,6 +103,29 @@ func (s *Server) handleQuickstart(c *gin.Context) {
 	}
 
 	subURL := fullPath[1:]
+
+	if strings.HasPrefix(subURL, "file://") {
+		filePath := strings.TrimPrefix(subURL, "file://")
+		safeDir := os.Getenv("SAFE_DIR")
+		if safeDir != "" {
+			absPath, err := filepath.Abs(filePath)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid file path"})
+				return
+			}
+
+			safeDirAbs, err := filepath.Abs(safeDir)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid SAFE_DIR configuration"})
+				return
+			}
+
+			if !strings.HasPrefix(absPath, safeDirAbs) {
+				c.JSON(http.StatusForbidden, gin.H{"error": "Access denied: file is outside of safe directory"})
+				return
+			}
+		}
+	}
 
 	templateFile := c.Query("file")
 	if templateFile == "" {

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sing-Box Sub Converter API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+        }
+        .api-section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+        .success {
+            color: #2ecc71;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sing-Box Sub Converter API</h1>
+        
+        <div class="api-section">
+            <h2>1. 生成配置 (Generate Configuration)</h2>
+            <p><strong>接口 (Endpoint)</strong>: /api/generate</p>
+            <p><strong>方法 (Method)</strong>: GET</p>
+            
+            <h3>请求参数 (Request Parameters)</h3>
+            <table>
+                <tr>
+                    <th>参数名 (Parameter)</th>
+                    <th>类型 (Type)</th>
+                    <th>必填 (Required)</th>
+                    <th>描述 (Description)</th>
+                </tr>
+                <tr>
+                    <td>file</td>
+                    <td>string</td>
+                    <td>是 (Yes)</td>
+                    <td>配置模板文件名（不含扩展名）(Configuration template filename without extension)</td>
+                </tr>
+            </table>
+            
+            <h3>测试工具 (Test Tool)</h3>
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="generateFile">配置模板文件名 (Template filename):</label>
+                    <input type="text" id="generateFile" name="file" placeholder="例如: openwrt" required>
+                </div>
+                <button type="submit">发送请求 (Send Request)</button>
+            </form>
+            <div id="generateResult"></div>
+        </div>
+        
+        <div class="api-section">
+            <h2>2. 快速启动 (Quick Start)</h2>
+            <p><strong>接口 (Endpoint)</strong>: /api/quickstart/*url</p>
+            <p><strong>方法 (Method)</strong>: GET</p>
+            
+            <h3>请求参数 (Request Parameters)</h3>
+            <table>
+                <tr>
+                    <th>参数名 (Parameter)</th>
+                    <th>类型 (Type)</th>
+                    <th>必填 (Required)</th>
+                    <th>描述 (Description)</th>
+                </tr>
+                <tr>
+                    <td>url</td>
+                    <td>string</td>
+                    <td>是 (Yes)</td>
+                    <td>订阅 URL（作为路径的一部分）(Subscription URL as part of the path)</td>
+                </tr>
+                <tr>
+                    <td>file</td>
+                    <td>string</td>
+                    <td>是 (Yes)</td>
+                    <td>配置模板文件名（不含扩展名）(Configuration template filename without extension)</td>
+                </tr>
+            </table>
+            
+            <h3>测试工具 (Test Tool)</h3>
+            <form id="quickstartForm">
+                <div class="form-group">
+                    <label for="quickstartUrl">订阅 URL (Subscription URL):</label>
+                    <input type="text" id="quickstartUrl" name="url" placeholder="例如: https://example.com/sub" required>
+                </div>
+                <div class="form-group">
+                    <label for="quickstartFile">配置模板文件名 (Template filename):</label>
+                    <input type="text" id="quickstartFile" name="file" placeholder="例如: openwrt" required>
+                </div>
+                <button type="submit">发送请求 (Send Request)</button>
+            </form>
+            <div id="quickstartResult"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('generateForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const file = document.getElementById('generateFile').value;
+            const url = `/api/generate?file=${encodeURIComponent(file)}`;
+            
+            document.getElementById('generateResult').innerHTML = '<p class="success">正在发送请求，请稍候...</p>';
+            
+            // Open in a new window
+            window.open(url, '_blank');
+        });
+
+        document.getElementById('quickstartForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('quickstartUrl').value;
+            const file = document.getElementById('quickstartFile').value;
+            const apiUrl = `/api/quickstart/${encodeURIComponent(url)}?file=${encodeURIComponent(file)}`;
+            
+            document.getElementById('quickstartResult').innerHTML = '<p class="success">正在发送请求，请稍候...</p>';
+            
+            // Open in a new window
+            window.open(apiUrl, '_blank');
+        });
+    </script>
+</body>
+</html>

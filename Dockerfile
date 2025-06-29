@@ -11,5 +11,6 @@ WORKDIR /app
 RUN mkdir -p /app/config /app/templates
 ENV SUB_CONFIG_HOME /app/config
 ENV TEMPLATE_DIR /app/templates
+ENV SAFE_DIR /app/local
 ENTRYPOINT ["/usr/bin/sing-box-sub-converter"]
 COPY --from=builder /usr/bin/sing-box-sub-converter /usr/bin/
