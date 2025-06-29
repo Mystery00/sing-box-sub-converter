@@ -18,8 +18,6 @@ const (
 
 var cfg ProvidersGlobalConfig
 
-// LoadProvidersConfig loads the providers.json configuration.
-// It also sets up a watcher to reload the config on change.
 func LoadProvidersConfig() error {
 	configHome := os.Getenv(envSubConfigHome)
 	if configHome == "" {
@@ -35,7 +33,6 @@ func LoadProvidersConfig() error {
 	viper.SetConfigType("json")
 	viper.AddConfigPath(configHome)
 
-	// Create default config if it doesn't exist
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if errors.As(err, &configFileNotFoundError) {
@@ -85,30 +82,18 @@ func createDefaultProvidersFile(filePath string) error {
 		ExcludeProtocol: "ssr",
 	}
 
-	// Use Viper to write the default config to ensure consistency if we use Viper's write methods elsewhere.
-	// However, Viper doesn't have a direct "write this struct as config" function.
-	// So, we'll marshal it to JSON and write manually.
-	// For simplicity and direct control, we'll marshal and write.
-
-	// Ensure the directory exists
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		slog.Error("Failed to create directory for default providers.json", "directory", dir, "error", err)
 		return err
 	}
 
-	// Create a temporary viper instance to write the default config
-	// This is a bit roundabout, as viper is more for reading and managing existing files.
-	// For creating a default file, marshalling to JSON and writing directly is often simpler.
-	// However, to stick to viper for all config file interactions:
 	v := viper.New()
 	v.Set("subscribes", defaultConfig.Subscribes)
 	v.Set("prefix", defaultConfig.Prefix)
 	v.Set("emoji", defaultConfig.Emoji)
 	v.Set("exclude_protocol", defaultConfig.ExcludeProtocol)
 
-	// Attempt to write the configuration.
-	// WriteConfigAs will create the file if it doesn't exist.
 	if err := v.WriteConfigAs(filePath); err != nil {
 		slog.Error("Failed to write default providers.json using Viper", "path", filePath, "error", err)
 		return err
@@ -118,9 +103,6 @@ func createDefaultProvidersFile(filePath string) error {
 	return nil
 }
 
-// GetConfig returns the current loaded configuration.
-// It's good practice to return a copy or ensure cfg is accessed concurrently safely if needed,
-// but for now, direct access is fine as Viper's OnConfigChange handles updates.
 func GetConfig() ProvidersGlobalConfig {
 	return cfg
 }

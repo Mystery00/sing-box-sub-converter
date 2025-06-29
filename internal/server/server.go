@@ -10,50 +10,19 @@ import (
 	"sing-box-sub-converter/internal/template"
 )
 
-// Server represents the HTTP server
 type Server struct {
 	router *gin.Engine
 }
 
-// globalExceptionHandler is a middleware that recovers from any panics and returns a 500 error
-func globalExceptionHandler() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				// Log the error
-				slog.Error("Panic recovered", "error", err)
-
-				// Return a 500 error with the error message
-				errMsg := ""
-				switch e := err.(type) {
-				case error:
-					errMsg = e.Error()
-				case string:
-					errMsg = e
-				default:
-					errMsg = "Unknown error occurred"
-				}
-
-				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": errMsg})
-			}
-		}()
-
-		c.Next()
-	}
-}
-
-// NewServer creates a new HTTP server
 func NewServer() *Server {
 	gin.SetMode(gin.ReleaseMode)
 
-	// Create a new router without default middleware
 	router := gin.New()
 
-	// Add the logger and recovery middleware
-	router.Use(gin.Logger())
-
-	// Add our custom global exception handler
 	router.Use(globalExceptionHandler())
+	router.NoRoute(func(c *gin.Context) {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"msg": "invalid route"})
+	})
 
 	server := &Server{
 		router: router,
@@ -65,13 +34,11 @@ func NewServer() *Server {
 	return server
 }
 
-// setupRoutes sets up the HTTP routes
 func (s *Server) setupRoutes() {
 	s.router.GET("/api/generate", s.handleGenerate)
 	s.router.GET("/api/quickstart/*url", s.handleQuickstart)
 }
 
-// Run starts the HTTP server
 func (s *Server) Run() error {
 	port, b := os.LookupEnv("SERVER_PORT")
 	if !b {
@@ -81,9 +48,7 @@ func (s *Server) Run() error {
 	return s.router.Run(":" + port)
 }
 
-// handleGenerate handles the /api/generate endpoint
 func (s *Server) handleGenerate(c *gin.Context) {
-	// Get template file from query parameter
 	templateFile := c.Query("file")
 	if templateFile == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing template file parameter"})
@@ -98,7 +63,6 @@ func (s *Server) handleGenerate(c *gin.Context) {
 		return
 	}
 
-	// Get configuration
 	cfg := config.GetConfig()
 
 	// 处理订阅
@@ -123,19 +87,15 @@ func handleGenerateConfigForSubscription(c *gin.Context, configs map[string]any,
 	c.JSON(http.StatusOK, finalConfig)
 }
 
-// handleQuickstart handles the /api/quickstart endpoint
 func (s *Server) handleQuickstart(c *gin.Context) {
-	// Extract subscription URL from path
 	fullPath := c.Param("url")
 	if fullPath == "" || fullPath == "/" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing subscription URL"})
 		return
 	}
 
-	// Remove leading slash
 	subURL := fullPath[1:]
 
-	// Get template file from query parameter
 	templateFile := c.Query("file")
 	if templateFile == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Missing template file parameter"})
