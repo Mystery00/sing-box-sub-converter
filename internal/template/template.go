@@ -26,9 +26,15 @@ func GetConfigTemplate(templateName string) (map[string]any, error) {
 		return nil, fmt.Errorf("没有找到模板文件")
 	}
 
+	// 读取环境变量中的模板目录路径,默认为config_template
+	templateDir := os.Getenv("TEMPLATE_DIR")
+	if templateDir == "" {
+		templateDir = "config_templates"
+	}
+
 	// 加载选定的模板
 	templateFileName := fmt.Sprintf("%s.json", templateName)
-	templateFilePath := filepath.Join("config_template", templateFileName)
+	templateFilePath := filepath.Join(templateDir, templateFileName)
 
 	templateData, err := os.ReadFile(templateFilePath)
 	if err != nil {
