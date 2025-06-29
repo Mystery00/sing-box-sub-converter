@@ -110,7 +110,7 @@ var CountryPatterns = map[string]*regexp.Regexp{
 	"🇨🇷": regexp.MustCompile(`哥斯达黎加|(\s|-)?CR\d*|Costa Rica`),
 	"🇻🇬": regexp.MustCompile(`英属维尔京|(\s|-)?VG\d*|British Virgin Islands`),
 	"🇻🇮": regexp.MustCompile(`美属维尔京|(\s|-)?VI\d*|United States Virgin Islands`),
-	"🇲🇽": regexp.MustCompile(`墨西哥|MX|MEX|MEX|MEXICO`),
+	"🇲🇽": regexp.MustCompile(`墨西哥|MX|MEX|MEXICO`),
 	"🇲🇪": regexp.MustCompile(`黑山|(\s|-)?ME\d*|Montenegro`),
 	"🇳🇱": regexp.MustCompile(`荷兰|荷蘭|尼德蘭|阿姆斯特丹|NL|Netherlands|Amsterdam`),
 	"🇵🇱": regexp.MustCompile(`波兰|波蘭|(\s|-)?PL\d*|POL|Poland`),
