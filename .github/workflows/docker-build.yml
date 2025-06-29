@@ -1,0 +1,43 @@
+name: Build With Docker
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+env:
+  DOCKER_NAMESPACE: mystery0
+  DOCKER_NAME: sing-box-sub-converter
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    steps:
+      - uses: actions/checkout@v3
+      - name: 生成镜像Tag
+        run: |
+          version=$(echo $GITHUB_REF | sed 's/refs\/tags\/v//')
+          docker_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:$version"
+          docker_latest_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:latest"
+          echo "docker_image_tag=$docker_image_tag,$docker_latest_image_tag" >> $GITHUB_ENV
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: 登录仓库
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          platforms: |
+            linux/amd64
+            linux/arm64
+          file: ./Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ env.docker_image_tag }}
+      - name: 创建GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          bodyFile: ./CHANGELOG.md

@@ -2,6 +2,12 @@
 
 sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具，它提供了 HTTP API 接口，可以从多个订阅源获取节点信息，并将其合并到自定义的配置模板中。
 
+## 如何运行
+
+```shell
+docker run -d mystery0/sing-box-sub-converter:latest
+```
+
 ### 核心组件
 
 1. **服务器 (Server)**
@@ -111,7 +117,7 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 {
   "subscribes": [
     {
-      "url": "订阅URL",
+      "url": "订阅URL，支持本地文件 file://文件绝对路径",
       "tag": "订阅标签",
       "prefix": "节点前缀",
       "userAgent": "自定义User-Agent"
@@ -125,7 +131,7 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 
 ### 配置模板
 
-配置模板存放在 `config_template` 目录下，使用 JSON 格式。模板中可以使用以下占位符：
+配置模板存放在 `config_template` 目录下，可通过 TEMPLATE_DIR 环境变量修改读取目录，使用 JSON 格式。模板中可以使用以下占位符：
 
 - `{all}`: 表示所有节点
 - `{tag名}`: 表示特定标签的节点
