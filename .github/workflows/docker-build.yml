@@ -17,6 +17,7 @@ jobs:
           version=$(echo $GITHUB_REF | sed 's/refs\/tags\/v//')
           docker_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:$version"
           docker_latest_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:latest"
+          echo "version=$version" >> $GITHUB_ENV
           echo "docker_image_tag=$docker_image_tag,$docker_latest_image_tag" >> $GITHUB_ENV
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
@@ -36,8 +37,11 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ env.docker_image_tag }}
+      - run: |
+          release_content=$(cat CHANGELOG.md)
+          echo "release_content=$release_content" >> $GITHUB_ENV
       - name: 创建GitHub Release
-        uses: ncipollo/release-action@v1
+        uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          bodyFile: ./CHANGELOG.md
+          tag_name: ${{ env.version }}
+          body: ${{ env.release_content }}
