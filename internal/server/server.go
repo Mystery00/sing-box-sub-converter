@@ -15,12 +15,48 @@ type Server struct {
 	router *gin.Engine
 }
 
+// globalExceptionHandler is a middleware that recovers from any panics and returns a 500 error
+func globalExceptionHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		defer func() {
+			if err := recover(); err != nil {
+				// Log the error
+				slog.Error("Panic recovered", "error", err)
+
+				// Return a 500 error with the error message
+				errMsg := ""
+				switch e := err.(type) {
+				case error:
+					errMsg = e.Error()
+				case string:
+					errMsg = e
+				default:
+					errMsg = "Unknown error occurred"
+				}
+
+				c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"msg": errMsg})
+			}
+		}()
+
+		c.Next()
+	}
+}
+
 // NewServer creates a new HTTP server
 func NewServer() *Server {
 	gin.SetMode(gin.ReleaseMode)
 
+	// Create a new router without default middleware
+	router := gin.New()
+
+	// Add the logger and recovery middleware
+	router.Use(gin.Logger())
+
+	// Add our custom global exception handler
+	router.Use(globalExceptionHandler())
+
 	server := &Server{
-		router: gin.Default(),
+		router: router,
 	}
 
 	// Set up routes
