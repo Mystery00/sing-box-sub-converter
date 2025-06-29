@@ -1,0 +1,34 @@
+package main
+
+import (
+	"log/slog"
+	"os"
+	"sing-box-sub-converter/internal/config"
+
+	"sing-box-sub-converter/internal/server"
+)
+
+func main() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+	err := config.LoadProvidersConfig()
+	if err != nil {
+		slog.Error("Failed to load providers config", "error", err)
+		os.Exit(1)
+		return
+	}
+
+	// Log startup
+	slog.Info("Starting sing-box-sub-converter")
+
+	// Initialize server
+	srv := server.NewServer()
+
+	// Start server
+	if err := srv.Run(); err != nil {
+		slog.Error("Server error", "error", err)
+		os.Exit(1)
+	}
+}
