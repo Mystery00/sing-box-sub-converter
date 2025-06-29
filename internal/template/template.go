@@ -16,20 +16,20 @@ import (
 func GetConfigTemplate(templateName string) (map[string]any, error) {
 	var config map[string]any
 
+	// 读取环境变量中的模板目录路径,默认为config_template
+	templateDir := os.Getenv("TEMPLATE_DIR")
+	if templateDir == "" {
+		templateDir = "config_templates"
+	}
+
 	// 从本地文件加载模板
-	templateList, err := loadTemplateList()
+	templateList, err := loadTemplateList(templateDir)
 	if err != nil {
 		return nil, fmt.Errorf("获取模板列表失败: %w", err)
 	}
 
 	if len(templateList) < 1 {
 		return nil, fmt.Errorf("没有找到模板文件")
-	}
-
-	// 读取环境变量中的模板目录路径,默认为config_template
-	templateDir := os.Getenv("TEMPLATE_DIR")
-	if templateDir == "" {
-		templateDir = "config_templates"
 	}
 
 	// 加载选定的模板

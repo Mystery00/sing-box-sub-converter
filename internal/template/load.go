@@ -7,10 +7,7 @@ import (
 )
 
 // loadTemplateList 获取配置模板列表
-func loadTemplateList() ([]string, error) {
-	// 配置模板文件夹路径
-	templateDir := "config_template"
-
+func loadTemplateList(templateDir string) ([]string, error) {
 	// 读取文件夹内容
 	files, err := os.ReadDir(templateDir)
 	if err != nil {
