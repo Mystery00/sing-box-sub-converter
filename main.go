@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 	"sing-box-sub-converter/internal/config"
-
 	"sing-box-sub-converter/internal/server"
 )
 

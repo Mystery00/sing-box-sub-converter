@@ -37,9 +37,9 @@ func NewServer() *Server {
 }
 
 func (s *Server) setupRoutes() {
-	s.router.Static("/static", "./static")
+	// Serve the embedded index.html file
 	s.router.GET("/", func(c *gin.Context) {
-		c.File("./static/index.html")
+		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(indexHtml))
 	})
 
 	// API routes
