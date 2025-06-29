@@ -1,66 +1,71 @@
-package clash
+package content
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
+	"log/slog"
 	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/utils"
+	"strings"
 )
 
 type ProtocolConverter interface {
 	NodeType() types.ProxyNodeType
-	Handle(map[string]any) bool
-	Parse(map[string]any) ([]types.ProxyNode, error)
+	Handle(string) bool
+	Parse(string) ([]types.ProxyNode, error)
 	Convert2SingBox(types.ProxyNode) map[string]any
 }
 
-type Clash struct {
+type Content struct {
 	converters   []ProtocolConverter
 	converterMap map[types.ProxyNodeType]ProtocolConverter
 }
 
-func NewClash() *Clash {
+func NewContent() *Content {
 	converters := make([]ProtocolConverter, 0)
 
 	converters = append(converters, shadowsocks{})
-	converters = append(converters, trojan{})
-	converters = append(converters, hysteria2{})
-	converters = append(converters, vless{})
 
 	converterMap := make(map[types.ProxyNodeType]ProtocolConverter)
 	for _, protocolConverter := range converters {
 		converterMap[protocolConverter.NodeType()] = protocolConverter
 	}
-	return &Clash{
+	return &Content{
 		converters,
 		converterMap,
 	}
 }
 
-func (Clash) SubType() string {
-	return "clash"
+func (Content) SubType() string {
+	return "content"
 }
 
-func (p Clash) Parse(content, sub string) ([]types.ProxyNode, error) {
-	var data map[string]any
-	if err := yaml.Unmarshal([]byte(content), &data); err != nil {
-		return nil, fmt.Errorf("parse clash yaml failed: %w", err)
+func (p Content) Parse(content, sub string) ([]types.ProxyNode, error) {
+	content = strings.TrimSpace(content)
+	if !strings.Contains(content, "\n") {
+		//只有一行，姑且认为是base64了
+		r, err := utils.Base64Decode(content)
+		if err == nil {
+			content = r
+		} else {
+			slog.Info("try to base64 decode failed")
+		}
 	}
-	// 提取proxies
-	proxies, ok := data["proxies"].([]any)
-	if !ok {
-		return nil, fmt.Errorf("empty proxies in clash yaml")
+	lines := strings.Split(content, "\n")
+	if len(lines) == 0 {
+		return nil, fmt.Errorf("empty content")
+	}
+	proxies := make([]string, 0)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		proxies = append(proxies, line)
 	}
 	parseNodes := make([]types.ProxyNode, 0)
 	for _, proxy := range proxies {
-		item, ok := proxy.(map[string]any)
-		if !ok {
-			return nil, fmt.Errorf("invalid proxy item: %v", proxy)
-		}
 		for _, c := range p.converters {
-			if !c.Handle(item) {
+			if !c.Handle(proxy) {
 				continue
 			}
-			list, err := c.Parse(item)
+			list, err := c.Parse(proxy)
 			if err != nil {
 				return nil, fmt.Errorf("parse shadowsocks failed: %w", err)
 			}
@@ -77,6 +82,6 @@ func (p Clash) Parse(content, sub string) ([]types.ProxyNode, error) {
 	return parseNodes, nil
 }
 
-func (p Clash) Convert2SingBoxOutbounds(node types.ProxyNode) map[string]any {
+func (p Content) Convert2SingBoxOutbounds(node types.ProxyNode) map[string]any {
 	return p.converterMap[node.Type].Convert2SingBox(node)
 }

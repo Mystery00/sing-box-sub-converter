@@ -3,25 +3,25 @@ package utils
 import (
 	"encoding/base64"
 	"encoding/json"
-	"net/url"
 	"strings"
 )
 
-func Base64Decode(str string) ([]byte, error) {
-	// URL解码
-	decoded, err := url.QueryUnescape(strings.TrimSpace(str))
+func Base64Decode(str string) (string, error) {
+	str = strings.TrimSpace(str)
+	r, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	return string(r), nil
+}
 
-	// 补充填充字符
-	padding := len(decoded) % 4
-	if padding > 0 {
-		decoded += strings.Repeat("=", 4-padding)
+func Base64UrlDecode(str string) (string, error) {
+	str = strings.TrimSpace(str)
+	r, err := base64.RawURLEncoding.DecodeString(str)
+	if err != nil {
+		return "", err
 	}
-
-	// Base64URL解码
-	return base64.URLEncoding.DecodeString(decoded)
+	return string(r), nil
 }
 
 func JsonStr(data any) string {

@@ -2,6 +2,7 @@ package converter
 
 import (
 	clash2 "sing-box-sub-converter/internal/converter/clash"
+	content2 "sing-box-sub-converter/internal/converter/content"
 	"sing-box-sub-converter/internal/converter/types"
 )
 
@@ -16,12 +17,23 @@ type SubscriptionParser interface {
 
 var (
 	clash = clash2.NewClash()
+
+	content = content2.NewContent()
 )
+
+func parsers() []SubscriptionParser {
+	return []SubscriptionParser{
+		clash,
+		content,
+	}
+}
 
 func GetParser(subType string) SubscriptionParser {
 	switch subType {
 	case clash.SubType():
 		return clash
+	case content.SubType():
+		return content
 	}
 	return nil
 }

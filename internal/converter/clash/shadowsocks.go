@@ -8,6 +8,13 @@ import (
 	"strings"
 )
 
+type ShadowsocksNode struct {
+	Method     string
+	Password   string
+	Plugin     string
+	PluginOpts string
+}
+
 type shadowsocks struct {
 }
 
@@ -24,24 +31,22 @@ func (shadowsocks) Handle(m map[string]any) bool {
 
 func (s shadowsocks) Parse(m map[string]any) (resultList []types.ProxyNode, err error) {
 	resultList = make([]types.ProxyNode, 0)
-	innerNode := types.ShadowsocksNode{}
+	innerNode := ShadowsocksNode{}
 	n := types.ProxyNode{}
 	if d, exist := m["name"]; exist {
-		n.Tag = d.(string)
+		n.Tag = strings.TrimSpace(d.(string))
 	} else {
 		n.Tag = fmt.Sprintf("%s_shadowsocks", utils.GenName(8))
 	}
 	if d, exist := m["server"]; exist {
-		n.Address = d.(string)
-		innerNode.Server = d.(string)
+		n.Address = strings.TrimSpace(d.(string))
 	}
 	if d, exist := m["port"]; exist {
 		p := d.(int)
 		n.Port = fmt.Sprintf("%d", p)
-		innerNode.ServerPort = p
 	}
 	if d, exist := m["cipher"]; exist {
-		innerNode.Method = d.(string)
+		innerNode.Method = strings.TrimSpace(d.(string))
 	}
 	if d, exist := m["password"]; exist {
 		innerNode.Password = d.(string)
@@ -95,13 +100,13 @@ func (s shadowsocks) Parse(m map[string]any) (resultList []types.ProxyNode, err 
 }
 
 func (shadowsocks) Convert2SingBox(node types.ProxyNode) map[string]any {
+	innerNode := node.ProxyDetail.(ShadowsocksNode)
 	m := make(map[string]any)
 	m["tag"] = node.Tag
 	m["type"] = node.Type
 	m["server"] = node.Address
 	pp, _ := strconv.Atoi(node.Port)
 	m["server_port"] = uint16(pp)
-	innerNode := node.ProxyDetail.(types.ShadowsocksNode)
 	m["method"] = innerNode.Method
 	m["password"] = innerNode.Password
 	if innerNode.Plugin != "" {

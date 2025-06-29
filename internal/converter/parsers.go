@@ -29,21 +29,29 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 
 		// 使用不同格式尝试解析
 		var subType string
-		list, err := clash.Parse(subscriptionContent, subscribe.Tag)
-		subType = clash.SubType()
+		var list []types.ProxyNode
+
+		for _, parser := range parsers() {
+			list, err = parser.Parse(subscriptionContent, subscribe.Tag)
+			subType = parser.SubType()
+			if err == nil {
+				break
+			}
+			slog.Info(fmt.Sprintf("parse subscription by %s failed, try another", subType))
+		}
 
 		if err != nil {
 			slog.Error("parse subscription failed", "error", err)
 			continue
 		}
 		// 处理节点
-		if config.GetConfig().Prefix {
-			list = addPrefix(list, subscribe)
-		}
 		if config.GetConfig().Emoji {
 			list = addEmoji(list)
 		} else {
 			list = removeEmoji(list)
+		}
+		if config.GetConfig().Prefix {
+			list = addPrefix(list, subscribe)
 		}
 		for i := range list {
 			list[i].SubType = subType

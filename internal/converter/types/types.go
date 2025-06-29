@@ -4,6 +4,9 @@ type ProxyNodeType string
 
 const (
 	ProxyNodeTypeShadowsocks ProxyNodeType = "shadowsocks"
+	ProxyNodeTypeTrojan      ProxyNodeType = "trojan"
+	ProxyNodeTypeHysteria2   ProxyNodeType = "hysteria2"
+	ProxyNodeTypeVless       ProxyNodeType = "vless"
 )
 
 type ProxyNode struct {
@@ -14,13 +17,4 @@ type ProxyNode struct {
 	FromSub     string
 	SubType     string
 	ProxyDetail any
-}
-
-type ShadowsocksNode struct {
-	Server     string
-	ServerPort int
-	Method     string
-	Password   string
-	Plugin     string
-	PluginOpts string
 }
