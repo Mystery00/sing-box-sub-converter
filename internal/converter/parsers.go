@@ -16,14 +16,14 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 
 	for _, subscribe := range subscribes {
 		// 获取节点
-		slog.Info("process subscription", "tag", subscribe.Tag, "url", subscribe.URL)
+		slog.Info("处理订阅", "tag", subscribe.Tag, "url", subscribe.URL)
 		subscriptionContent, err := fetcher.FetchSubscription(subscribe.URL, subscribe.UserAgent)
 		if err != nil {
-			slog.Error("request subscription failed", "error", err)
+			slog.Error("请求订阅失败", "error", err)
 			continue
 		}
 		if subscriptionContent == "" {
-			slog.Warn("empty subscription content, skip")
+			slog.Warn("订阅内容为空，跳过")
 			continue
 		}
 
@@ -37,11 +37,11 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 			if err == nil {
 				break
 			}
-			slog.Info(fmt.Sprintf("parse subscription by %s failed, try another", subType))
+			slog.Info(fmt.Sprintf("使用%s解析订阅失败，尝试其他方式", subType))
 		}
 
 		if err != nil {
-			slog.Error("parse subscription failed", "error", err)
+			slog.Error("解析订阅失败", "error", err)
 			continue
 		}
 		// 处理节点

@@ -15,20 +15,20 @@ func main() {
 	slog.SetDefault(logger)
 	err := config.LoadProvidersConfig()
 	if err != nil {
-		slog.Error("Failed to load providers config", "error", err)
+		slog.Error("加载providers配置失败", "error", err)
 		os.Exit(1)
 		return
 	}
 
 	// Log startup
-	slog.Info("Starting sing-box-sub-converter")
+	slog.Info("正在启动sing-box-sub-converter")
 
 	// Initialize server
 	srv := server.NewServer()
 
 	// Start server
 	if err := srv.Run(); err != nil {
-		slog.Error("Server error", "error", err)
+		slog.Error("服务器错误", "error", err)
 		os.Exit(1)
 	}
 }

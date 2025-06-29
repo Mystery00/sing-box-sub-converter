@@ -31,7 +31,7 @@ func (remote) Check(url string) bool {
 func (r remote) Fetch(url, userAgent string) (string, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		slog.Error("Failed to create new request", "url", url, "error", err)
+		slog.Error("创建新请求失败", "url", url, "error", err)
 		return "", err
 	}
 
@@ -41,28 +41,28 @@ func (r remote) Fetch(url, userAgent string) (string, error) {
 		req.Header.Set("User-Agent", "sing-box-sub-converter")
 	}
 
-	slog.Info("Fetching subscription", "url", url, "userAgent", req.Header.Get("User-Agent"))
+	slog.Info("正在获取订阅", "url", url, "userAgent", req.Header.Get("User-Agent"))
 
 	resp, err := r.client.Do(req)
 	if err != nil {
-		slog.Error("Failed to fetch subscription", "url", url, "error", err)
+		slog.Error("获取订阅失败", "url", url, "error", err)
 		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		slog.Error("Subscription request failed with status code", "url", url, "status_code", resp.StatusCode)
+		slog.Error("订阅请求失败，状态码", "url", url, "status_code", resp.StatusCode)
 		bodyBytes, _ := io.ReadAll(resp.Body)
-		slog.Debug("Response body for failed request", "body", string(bodyBytes))
+		slog.Debug("失败请求的响应体", "body", string(bodyBytes))
 		return "", fmt.Errorf("failed to fetch subscription from %s: status code %d", url, resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		slog.Error("Failed to read subscription response body", "url", url, "error", err)
+		slog.Error("读取订阅响应体失败", "url", url, "error", err)
 		return "", err
 	}
 
-	slog.Debug("Successfully fetched subscription content", "url", url, "content_length", len(body))
+	slog.Debug("成功获取订阅内容", "url", url, "content_length", len(body))
 	return string(body), nil
 }

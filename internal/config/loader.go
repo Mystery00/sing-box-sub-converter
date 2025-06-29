@@ -23,7 +23,7 @@ func LoadProvidersConfig() error {
 	if configHome == "" {
 		cwd, err := os.Getwd()
 		if err != nil {
-			slog.Error("Failed to get current working directory", "error", err)
+			slog.Error("获取当前工作目录失败", "error", err)
 			return err
 		}
 		configHome = cwd
@@ -36,35 +36,35 @@ func LoadProvidersConfig() error {
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if errors.As(err, &configFileNotFoundError) {
-			slog.Info("providers.json not found, creating a default one.", "path", filepath.Join(configHome, defaultProvidersFilename))
+			slog.Info("未找到providers.json，正在创建默认文件", "path", filepath.Join(configHome, defaultProvidersFilename))
 			if err := createDefaultProvidersFile(filepath.Join(configHome, defaultProvidersFilename)); err != nil {
-				slog.Error("Failed to create default providers.json", "error", err)
+				slog.Error("创建默认providers.json文件失败", "error", err)
 				return err
 			}
 			// Attempt to read again after creation
 			if err := viper.ReadInConfig(); err != nil {
-				slog.Error("Failed to read providers.json after creating default", "error", err)
+				slog.Error("创建默认文件后读取providers.json失败", "error", err)
 				return err
 			}
 		}
 	}
 
 	if err := viper.Unmarshal(&cfg); err != nil {
-		slog.Error("Unable to decode providers.json into struct", "error", err)
+		slog.Error("无法将providers.json解码为结构体", "error", err)
 		return err
 	}
 
-	slog.Info("providers.json loaded successfully", "path", viper.ConfigFileUsed())
-	slog.Debug("Loaded configuration", "config", cfg)
+	slog.Info("providers.json加载成功", "path", viper.ConfigFileUsed())
+	slog.Debug("已加载配置", "config", cfg)
 
 	viper.WatchConfig()
 	viper.OnConfigChange(func(e fsnotify.Event) {
-		slog.Info("providers.json changed, reloading.", "event", e.Name)
+		slog.Info("providers.json已更改，正在重新加载", "event", e.Name)
 		if err := viper.Unmarshal(&cfg); err != nil {
-			slog.Error("Error reloading providers.json", "error", err)
+			slog.Error("重新加载providers.json出错", "error", err)
 		} else {
-			slog.Info("providers.json reloaded successfully.")
-			slog.Debug("Reloaded configuration", "config", cfg)
+			slog.Info("providers.json重新加载成功")
+			slog.Debug("已重新加载配置", "config", cfg)
 		}
 	})
 
@@ -84,7 +84,7 @@ func createDefaultProvidersFile(filePath string) error {
 
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0755); err != nil {
-		slog.Error("Failed to create directory for default providers.json", "directory", dir, "error", err)
+		slog.Error("为默认providers.json创建目录失败", "directory", dir, "error", err)
 		return err
 	}
 
@@ -95,11 +95,11 @@ func createDefaultProvidersFile(filePath string) error {
 	v.Set("exclude_protocol", defaultConfig.ExcludeProtocol)
 
 	if err := v.WriteConfigAs(filePath); err != nil {
-		slog.Error("Failed to write default providers.json using Viper", "path", filePath, "error", err)
+		slog.Error("使用Viper写入默认providers.json失败", "path", filePath, "error", err)
 		return err
 	}
 
-	slog.Info("Successfully created default providers.json", "path", filePath)
+	slog.Info("成功创建默认providers.json", "path", filePath)
 	return nil
 }
 

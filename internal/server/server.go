@@ -44,7 +44,7 @@ func (s *Server) Run() error {
 	if !b {
 		port = "5000"
 	}
-	slog.Info("Starting server", "port", port)
+	slog.Info("正在启动服务器", "port", port)
 	return s.router.Run(":" + port)
 }
 
@@ -58,7 +58,7 @@ func (s *Server) handleGenerate(c *gin.Context) {
 	// 获取配置模板
 	configs, err := template.GetConfigTemplate(templateFile)
 	if err != nil {
-		slog.Error("Failed to load template", "error", err)
+		slog.Error("加载模板失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to load template"})
 		return
 	}
@@ -72,7 +72,7 @@ func (s *Server) handleGenerate(c *gin.Context) {
 func handleGenerateConfigForSubscription(c *gin.Context, configs map[string]any, subscribes []config.Subscription) {
 	nodes, err := converter.ProcessSubscribes(subscribes)
 	if err != nil {
-		slog.Error("Failed to process subscribes", "error", err)
+		slog.Error("处理订阅失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to process subscribes"})
 		return
 	}
@@ -80,7 +80,7 @@ func handleGenerateConfigForSubscription(c *gin.Context, configs map[string]any,
 	// 节点信息添加到模板
 	finalConfig, err := template.MergeToConfig(configs, nodes)
 	if err != nil {
-		slog.Error("Failed to merge config", "error", err)
+		slog.Error("合并配置失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to merge config"})
 		return
 	}
@@ -105,7 +105,7 @@ func (s *Server) handleQuickstart(c *gin.Context) {
 	// 获取配置模板
 	configs, err := template.GetConfigTemplate(templateFile)
 	if err != nil {
-		slog.Error("Failed to load template", "error", err)
+		slog.Error("加载模板失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to load template"})
 		return
 	}
