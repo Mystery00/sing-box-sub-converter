@@ -45,7 +45,7 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 		} else {
 			list = removeEmoji(list)
 		}
-		for i, _ := range list {
+		for i := range list {
 			list[i].SubType = subType
 		}
 		nodes = append(nodes, list...)
@@ -69,14 +69,14 @@ func addPrefix(nodes []types.ProxyNode, subscribe config.Subscription) []types.P
 }
 
 func addEmoji(nodes []types.ProxyNode) []types.ProxyNode {
-	for i, _ := range nodes {
+	for i := range nodes {
 		nodes[i].Tag = utils.AddNodeEmoji(nodes[i].Tag)
 	}
 	return nodes
 }
 
 func removeEmoji(nodes []types.ProxyNode) []types.ProxyNode {
-	for i, _ := range nodes {
+	for i := range nodes {
 		nodes[i].Tag = utils.RemoveNodeEmoji(nodes[i].Tag)
 	}
 	return nodes

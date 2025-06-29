@@ -20,7 +20,7 @@ func (file) Check(url string) bool {
 	return checkFileExist(file)
 }
 
-func (file) Fetch(url, userAgent string) (string, error) {
+func (file) Fetch(url, _ string) (string, error) {
 	filePath := strings.TrimPrefix(url, "file://")
 	content, err := os.ReadFile(filePath)
 	if err != nil {
