@@ -25,7 +25,7 @@ sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具�
    - 支持按订阅标签分组节点
 
 4. **订阅获取 (Fetcher)**
-   - 从远程URL获取订阅内容
+   - 从远程URL获取订阅内容（支持http和https链接）
    - 从本地文件获取订阅内容
    - 支持自定义 User-Agent
    - 支持安全目录限制（对本地文件）
@@ -63,6 +63,7 @@ docker run -d -p 5000:5000 mystery0/sing-box-sub-converter:latest
 | TEMPLATE_DIR | 配置模板目录 | config_templates |
 | SUB_CONFIG_HOME | 订阅配置文件目录 | 当前工作目录 |
 | SAFE_DIR | 本地文件订阅的安全目录 | 无（不限制） |
+| SUB_URL | 未挂载providers.json时的默认订阅链接 | http://127.0.0.1:1080/test.txt |
 
 ## API 接口
 
@@ -138,7 +139,7 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 {
   "subscribes": [
     {
-      "url": "订阅URL，支持本地文件 file://文件绝对路径",
+      "url": "订阅URL（支持http/https链接和本地文件 file://文件绝对路径）",
       "tag": "订阅标签",
       "prefix": "节点前缀",
       "userAgent": "自定义User-Agent"

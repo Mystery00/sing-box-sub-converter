@@ -14,6 +14,7 @@ import (
 const (
 	defaultProvidersFilename = "providers.json"
 	envSubConfigHome         = "SUB_CONFIG_HOME"
+	envDefaultSubUrl         = "SUB_URL"
 )
 
 var cfg ProvidersGlobalConfig
@@ -72,14 +73,18 @@ func LoadProvidersConfig() error {
 }
 
 func createDefaultProvidersFile(filePath string) error {
+	subURL := os.Getenv(envDefaultSubUrl)
+	if subURL == "" {
+		subURL = "http://127.0.0.1:1080/test.txt"
+	}
 	defaultConfig := ProvidersGlobalConfig{
 		Subscribes: []Subscription{
-			{URL: "http://127.0.0.1:1080/test1.txt", Tag: "test1", Prefix: "test1", UserAgent: "clash"},
-			{URL: "http://127.0.0.1:1080/test2.txt", Tag: "test2", Prefix: "test2", UserAgent: ""},
+			{URL: subURL, Tag: "defaultSub", Prefix: "default", UserAgent: "clash"},
 		},
-		Prefix:          true,
+		Prefix:          false,
 		Emoji:           true,
 		ExcludeProtocol: "ssr",
+		ShowSubInNodes:  false,
 	}
 
 	dir := filepath.Dir(filePath)
@@ -93,6 +98,7 @@ func createDefaultProvidersFile(filePath string) error {
 	v.Set("prefix", defaultConfig.Prefix)
 	v.Set("emoji", defaultConfig.Emoji)
 	v.Set("exclude_protocol", defaultConfig.ExcludeProtocol)
+	v.Set("showSubInNodes", defaultConfig.ShowSubInNodes)
 
 	if err := v.WriteConfigAs(filePath); err != nil {
 		slog.Error("使用Viper写入默认providers.json失败", "path", filePath, "error", err)
