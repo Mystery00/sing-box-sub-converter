@@ -188,13 +188,21 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 
 ## 支持的订阅格式
 
+下表展示了各种订阅格式支持的协议类型：
+
+| 协议类型 | Clash 格式 | 普通文本格式 |
+|---------|-----------|------------|
+| Shadowsocks | ✅ | ✅ |
+| Trojan | ✅ | ❌ |
+| VLESS | ✅ | ❌ |
+| Hysteria2 | ✅ | ❌ |
+| VMess | ✅ | ❌ |
+
+### 备注
+因为我用的机场只有SS协议并且我使用的普通文本的格式，所以我只能保证我正在使用的场景转换逻辑是正常的，其他的协议欢迎PR。
+
 ### Clash 格式
-支持解析 Clash 配置文件中的代理节点，包括以下协议：
-- Shadowsocks
-- Trojan
-- VLESS
-- Hysteria2
-- VMess
+支持解析 Clash 配置文件中的代理节点。
 
 ### 普通文本格式
 支持解析包含以下格式的文本文件：
