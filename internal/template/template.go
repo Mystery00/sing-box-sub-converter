@@ -55,6 +55,15 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 	if !ok {
 		return nil, fmt.Errorf("无效的outbounds配置")
 	}
+	validNodes := make([]types.ProxyNode, 0)
+	subInfoNodes := make([]string, 0)
+	for _, node := range nodes {
+		if node.Type == types.ProxyNodeTypeSubInfo {
+			subInfoNodes = append(subInfoNodes, node.Tag)
+			continue
+		}
+		validNodes = append(validNodes, node)
+	}
 
 	// 依次替换规则中的占位符
 	usedNodeTags := mapset.NewSet[string]()
@@ -70,8 +79,8 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 		if !ok {
 			continue
 		}
-		replaceNodes := make([]types.ProxyNode, len(nodes))
-		copy(replaceNodes, nodes)
+		replaceNodes := make([]types.ProxyNode, len(validNodes))
+		copy(replaceNodes, validNodes)
 		filterVal, exist := outbound["filter"]
 		if exist {
 			filters := parseFilters(filterVal)
@@ -107,6 +116,14 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 		outbound["outbounds"] = resultOutbounds
 		outbounds[i] = outbound
 	}
+	if len(subInfoNodes) != 0 {
+		//这个方法中添加一个选择器
+		outbound := make(map[string]any)
+		outbound["type"] = "selector"
+		outbound["tag"] = "订阅信息"
+		outbound["outbounds"] = subInfoNodes
+		outbounds = append(outbounds, outbound)
+	}
 
 	//将所有节点加到最后
 	appendNodes := make([]types.ProxyNode, 0)
@@ -119,6 +136,15 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 	for _, node := range appendNodes {
 		o := converter.GetParser(node.SubType).Convert2SingBoxOutbounds(node)
 		outbounds = append(outbounds, o)
+	}
+	if len(subInfoNodes) != 0 {
+		//把订阅信息单独加到出站列表
+		for _, tag := range subInfoNodes {
+			outbound := make(map[string]any)
+			outbound["type"] = "direct"
+			outbound["tag"] = tag
+			outbounds = append(outbounds, outbound)
+		}
 	}
 
 	config["outbounds"] = outbounds

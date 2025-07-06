@@ -8,6 +8,8 @@ import (
 	"sing-box-sub-converter/internal/converter/types"
 	"sing-box-sub-converter/internal/fetcher"
 	"sing-box-sub-converter/utils"
+	"strings"
+	"time"
 )
 
 // ProcessSubscribes 处理所有订阅
@@ -17,7 +19,7 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 	for _, subscribe := range subscribes {
 		// 获取节点
 		slog.Info("处理订阅", "tag", subscribe.Tag, "url", subscribe.URL)
-		subscriptionContent, err := fetcher.FetchSubscription(subscribe.URL, subscribe.UserAgent)
+		subscriptionContent, subInfo, err := fetcher.FetchSubscription(subscribe.URL, subscribe.UserAgent)
 		if err != nil {
 			slog.Error("请求订阅失败", "error", err)
 			continue
@@ -57,12 +59,40 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 			list[i].SubType = subType
 		}
 		nodes = append(nodes, list...)
+		if config.GetConfig().ShowSubInNodes && subInfo != nil {
+			remainBytes := bytesToGB(subInfo.Total - subInfo.Upload - subInfo.Download)
+			remainDays := calculateRemainDays(subInfo.Expire)
+			prefix := strings.TrimSpace(subscribe.Prefix)
+			if prefix == "" {
+				prefix = strings.TrimSpace(subscribe.Tag)
+			}
+			nodes = append(nodes, types.ProxyNode{
+				Type:        types.ProxyNodeTypeSubInfo,
+				Tag:         fmt.Sprintf("%s 剩余流量：%s 剩余天数：%s", prefix, remainBytes, remainDays),
+				Address:     "subInfo",
+				Port:        "1",
+				FromSub:     subscribe.Tag,
+				SubType:     "",
+				ProxyDetail: nil,
+			})
+		}
 	}
 
 	// 处理重复节点名称
 	nodes = processDuplicateNodeTag(nodes)
 
 	return nodes, nil
+}
+
+func calculateRemainDays(timeInMills int64) string {
+	expireTime := time.Unix(timeInMills, 0)
+	remainDays := time.Until(expireTime).Hours() / 24
+	return fmt.Sprintf("%d天", int(remainDays))
+}
+
+func bytesToGB(bytes int64) string {
+	gb := float64(bytes) / (1024 * 1024 * 1024)
+	return fmt.Sprintf("%.2f GB", gb)
 }
 
 func addPrefix(nodes []types.ProxyNode, subscribe config.Subscription) []types.ProxyNode {

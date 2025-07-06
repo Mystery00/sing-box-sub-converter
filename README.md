@@ -146,9 +146,18 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
   ],
   "prefix": true,
   "emoji": true,
-  "exclude_protocol": ""
+  "exclude_protocol": "",
+  "showSubInNodes": true
 }
 ```
+
+**配置选项说明：**
+
+- `subscribes`: 订阅源列表
+- `prefix`: 是否在节点名称前添加前缀
+- `emoji`: 是否在节点名称前添加国家/地区表情符号
+- `exclude_protocol`: 排除指定协议的节点
+- `showSubInNodes`: 是否显示订阅信息（剩余流量和到期时间）作为节点。当设置为 `true` 时，系统会解析订阅响应头中的 `subscription-userinfo` 信息，并创建包含剩余流量和到期天数的节点。
 
 ### 配置模板
 

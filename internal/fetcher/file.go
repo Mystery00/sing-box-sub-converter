@@ -20,13 +20,13 @@ func (file) Check(url string) bool {
 	return checkFileExist(file)
 }
 
-func (file) Fetch(url, _ string) (string, error) {
+func (file) Fetch(url, _ string) (string, *SubInfo, error) {
 	filePath := strings.TrimPrefix(url, "file://")
 	content, err := os.ReadFile(filePath)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
-	return string(content), nil
+	return string(content), nil, nil
 }
 
 func checkFileExist(filePath string) bool {

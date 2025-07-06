@@ -3,6 +3,8 @@ package types
 type ProxyNodeType string
 
 const (
+	ProxyNodeTypeSubInfo ProxyNodeType = "subInfo"
+
 	ProxyNodeTypeShadowsocks ProxyNodeType = "shadowsocks"
 	ProxyNodeTypeTrojan      ProxyNodeType = "trojan"
 	ProxyNodeTypeHysteria2   ProxyNodeType = "hysteria2"
