@@ -12,5 +12,5 @@ type ProvidersGlobalConfig struct {
 	Prefix          bool           `json:"prefix"`
 	Emoji           bool           `json:"emoji"`
 	ExcludeProtocol string         `json:"exclude_protocol"`
-	ShowSubInNodes  bool           `json:"showSubInNodes"`
+	ShowSubInNodes  bool           `json:"show_sub_in_nodes"`
 }

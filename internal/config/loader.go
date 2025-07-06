@@ -98,7 +98,7 @@ func createDefaultProvidersFile(filePath string) error {
 	v.Set("prefix", defaultConfig.Prefix)
 	v.Set("emoji", defaultConfig.Emoji)
 	v.Set("exclude_protocol", defaultConfig.ExcludeProtocol)
-	v.Set("showSubInNodes", defaultConfig.ShowSubInNodes)
+	v.Set("show_sub_in_nodes", defaultConfig.ShowSubInNodes)
 
 	if err := v.WriteConfigAs(filePath); err != nil {
 		slog.Error("使用Viper写入默认providers.json失败", "path", filePath, "error", err)
