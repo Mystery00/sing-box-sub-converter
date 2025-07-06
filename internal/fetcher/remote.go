@@ -22,7 +22,7 @@ func NewRemote() Fetcher {
 }
 
 func (remote) Check(url string) bool {
-	if !strings.HasPrefix(url, "http://") && strings.HasPrefix(url, "https://") {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
 		return false
 	}
 	return true
