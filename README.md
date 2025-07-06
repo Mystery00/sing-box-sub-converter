@@ -194,6 +194,7 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 - Trojan
 - VLESS
 - Hysteria2
+- VMess
 
 ### 普通文本格式
 支持解析包含以下格式的文本文件：

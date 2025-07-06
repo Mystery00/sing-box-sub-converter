@@ -25,6 +25,7 @@ func NewClash() *Clash {
 	converters = append(converters, trojan{})
 	converters = append(converters, hysteria2{})
 	converters = append(converters, vless{})
+	converters = append(converters, vmess{})
 
 	converterMap := make(map[types.ProxyNodeType]ProtocolConverter)
 	for _, protocolConverter := range converters {

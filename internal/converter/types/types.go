@@ -9,6 +9,7 @@ const (
 	ProxyNodeTypeTrojan      ProxyNodeType = "trojan"
 	ProxyNodeTypeHysteria2   ProxyNodeType = "hysteria2"
 	ProxyNodeTypeVless       ProxyNodeType = "vless"
+	ProxyNodeTypeVmess       ProxyNodeType = "vmess"
 )
 
 type ProxyNode struct {
