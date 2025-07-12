@@ -18,6 +18,7 @@ func Vercel(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	userAgent := r.URL.Query().Get("userAgent")
 
 	// 获取配置模板
 	bodyBytes, err := io.ReadAll(r.Body)
@@ -39,7 +40,7 @@ func Vercel(w http.ResponseWriter, r *http.Request) {
 		URL:       subURL,
 		Tag:       "single",
 		Prefix:    "",
-		UserAgent: "",
+		UserAgent: userAgent,
 	})
 	// 处理订阅
 	nodes, err := converter.ProcessSubscribes(subscribes)

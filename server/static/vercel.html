@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sing-Box Sub Converter API</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #3498db;
+            margin-top: 30px;
+        }
+        .api-section {
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 10px;
+        }
+        .success {
+            color: #2ecc71;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sing-Box Sub Converter API</h1>
+
+        <div class="api-section">
+            <h2>Vercel API</h2>
+            <p><strong>接口 (Endpoint)</strong>: /vercel/{subscription_url}?userAgent={userAgent}</p>
+            <p><strong>方法 (Method)</strong>: POST</p>
+
+            <h3>测试工具 (Test Tool)</h3>
+            <form id="vercelForm">
+                <div class="form-group">
+                    <label for="vercelUrl">订阅 URL (Subscription URL):</label>
+                    <input type="text" id="vercelUrl" name="url" placeholder="例如: https://example.com/sub" required>
+                </div>
+                <div class="form-group">
+                    <label for="vercelUserAgent">User Agent (可选/Optional):</label>
+                    <input type="text" id="vercelUserAgent" name="userAgent" placeholder="默认：sing-box-sub-converter">
+                </div>
+                <div class="form-group">
+                    <label for="vercelConfig">配置模板 JSON (Template JSON):</label>
+                    <textarea id="vercelConfig" name="config" rows="10" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" placeholder='例如: {"outbounds":[{"type":"direct","tag":"direct"}]}' required></textarea>
+                </div>
+                <button type="submit">发送请求 (Send Request)</button>
+            </form>
+            <div id="vercelResult"></div>
+            <div id="vercelResponseContainer" style="display: none; margin-top: 20px;">
+                <h3>响应结果 (Response Result)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span>JSON 响应 (JSON Response):</span>
+                    <button id="copyButton" onclick="copyResponse()" style="padding: 5px 10px;">复制 (Copy)</button>
+                </div>
+                <pre id="vercelResponseContent" style="background-color: #f5f5f5; padding: 10px; border-radius: 5px; overflow: auto; max-height: 400px;"></pre>
+            </div>
+
+            <h3>请求参数 (Request Parameters)</h3>
+            <table>
+                <tr>
+                    <th>参数名 (Parameter)</th>
+                    <th>类型 (Type)</th>
+                    <th>必填 (Required)</th>
+                    <th>描述 (Description)</th>
+                </tr>
+                <tr>
+                    <td>subscription_url</td>
+                    <td>string</td>
+                    <td>是 (Yes)</td>
+                    <td>订阅 URL（作为路径的一部分）(Subscription URL as part of the path)</td>
+                </tr>
+                <tr>
+                    <td>userAgent</td>
+                    <td>string</td>
+                    <td>否 (No)</td>
+                    <td>请求订阅地址时使用的 UserAgent 请求头 (UserAgent header used when requesting subscription URL)
+                    </td>
+                </tr>
+                <tr>
+                    <td>Request Body</td>
+                    <td>JSON</td>
+                    <td>是 (Yes)</td>
+                    <td>配置模板 JSON (Configuration template JSON)</td>
+                </tr>
+            </table>
+
+            <h3>请求体说明 (Request Body Description)</h3>
+            <p>请求体应为一个 JSON 对象，包含配置模板。这个模板将与从订阅 URL 获取的节点信息合并。</p>
+
+            <h3>响应 (Response)</h3>
+            <p>成功时返回 HTTP 状态码 200 和合并后的 JSON 配置。</p>
+
+            <h3>错误响应 (Error Response)</h3>
+            <table>
+                <tr>
+                    <th>状态码 (Status Code)</th>
+                    <th>响应内容 (Response Content)</th>
+                    <th>描述 (Description)</th>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>"Missing subscription URL"</td>
+                    <td>缺少订阅 URL (Missing subscription URL)</td>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>"Failed to load template"</td>
+                    <td>解析模板文件失败 (Failed to parse template file)</td>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>"Failed to process subscribes"</td>
+                    <td>处理订阅失败 (Failed to process subscribes)</td>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>"Failed to merge config"</td>
+                    <td>合并配置失败 (Failed to merge config)</td>
+                </tr>
+                <tr>
+                    <td>400</td>
+                    <td>"Failed to marshal config"</td>
+                    <td>序列化配置失败 (Failed to serialize config)</td>
+                </tr>
+            </table>
+
+            <h3>示例 (Example)</h3>
+            <p><strong>请求 URL (Request URL)</strong>: /vercel/https://example.com/sub</p>
+            <p><strong>请求体 (Request Body)</strong>:</p>
+            <pre>{
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ]
+}</pre>
+        </div>
+    </div>
+
+    <script>
+        // Function to copy response to clipboard
+        function copyResponse() {
+            const responseContent = document.getElementById('vercelResponseContent');
+            const textArea = document.createElement('textarea');
+            textArea.value = responseContent.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Show feedback
+            const copyButton = document.getElementById('copyButton');
+            const originalText = copyButton.textContent;
+            copyButton.textContent = '已复制! (Copied!)';
+            setTimeout(() => {
+                copyButton.textContent = originalText;
+            }, 2000);
+        }
+
+        // Handle vercelForm
+        document.getElementById('vercelForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const url = document.getElementById('vercelUrl').value;
+            const userAgent = document.getElementById('vercelUserAgent').value;
+            const configText = document.getElementById('vercelConfig').value;
+
+            // Build the API URL with optional userAgent parameter
+            let apiUrl = `/vercel/${encodeURIComponent(url)}`;
+            if (userAgent) {
+                apiUrl += `?userAgent=${encodeURIComponent(userAgent)}`;
+            }
+
+            // Hide previous response and show loading message
+            document.getElementById('vercelResponseContainer').style.display = 'none';
+            document.getElementById('vercelResult').innerHTML = '<p class="success">正在发送请求，请稍候... (Sending request, please wait...)</p>';
+
+            try {
+                // Parse the JSON to validate it
+                const configJson = JSON.parse(configText);
+
+                // Send the POST request
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: configText
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`HTTP error ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    // Format the JSON if possible
+                    let formattedData = data;
+                    try {
+                        const jsonData = JSON.parse(data);
+                        formattedData = JSON.stringify(jsonData, null, 2);
+                    } catch (e) {
+                        // If not valid JSON, use as-is
+                    }
+
+                    // Display the response in the current page
+                    document.getElementById('vercelResponseContent').textContent = formattedData;
+                    document.getElementById('vercelResponseContainer').style.display = 'block';
+                    document.getElementById('vercelResult').innerHTML = '<p class="success">请求成功 (Request successful)</p>';
+                })
+                .catch(error => {
+                    // Display the error in the current page
+                    document.getElementById('vercelResponseContent').textContent = error.message;
+                    document.getElementById('vercelResponseContainer').style.display = 'block';
+                    document.getElementById('vercelResult').innerHTML = '<p class="error">请求失败 (Request failed)</p>';
+                });
+            } catch (e) {
+                // JSON parsing error
+                document.getElementById('vercelResult').innerHTML = `<p class="error">JSON 格式错误 (JSON format error): ${e.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
