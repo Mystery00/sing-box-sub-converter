@@ -49,6 +49,14 @@ sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具�
 
 ## 如何运行
 
+### Vercel 部署
+
+本项目支持通过 Vercel 进行部署和调用。点击下方按钮一键部署到 Vercel：
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fmystery0%2Fsing-box-sub-converter)
+
+部署完成后，可以通过 Vercel 提供的域名访问 API 接口。
+
 ### Docker 方式
 
 ```shell
@@ -131,6 +139,54 @@ GET /api/quickstart/https://example.com/sub?file=openwrt
 | 400 | {"error": "Failed to load template"}         | 加载模板失败   |
 | 400 | {"error": "Failed to process subscribes"}    | 处理订阅失败   |
 | 400 | {"error": "Failed to merge config"}          | 合并配置失败   |
+
+### 3. Vercel API （此接口仅在 Vercel 部署中提供）
+
+**接口**: `/vercel/{subscription_url}`
+
+**方法**: POST
+
+**请求参数**:
+
+| 参数名              | 类型     | 必填 | 描述                       |
+|------------------|--------|----|--------------------------|
+| subscription_url | string | 是  | 订阅 URL（作为路径的一部分）         |
+| userAgent        | string | 否  | 请求订阅地址时使用的 UserAgent 请求头 |
+| Request Body     | JSON   | 是  | 配置模板 JSON                |
+
+**请求体说明**:
+
+请求体应为一个 JSON 对象，包含配置模板。这个模板将与从订阅 URL 获取的节点信息合并。
+
+**返回数据**:
+
+成功时返回 HTTP 状态码 200 和合并后的 JSON 配置。
+
+**示例请求**:
+
+```
+POST /vercel/https://example.com/sub
+Content-Type: application/json
+
+{
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ]
+}
+```
+
+**错误响应**:
+
+| 状态码 | 响应                                    | 描述       |
+|-----|---------------------------------------|----------|
+| 400 | "Missing subscription URL"            | 缺少订阅 URL |
+| 400 | "Failed to load template"             | 解析模板文件失败 |
+| 400 | "Failed to process subscribes"        | 处理订阅失败   |
+| 400 | "Failed to merge config"              | 合并配置失败   |
+| 400 | "Failed to marshal config"            | 序列化配置失败  |
 
 ## 配置说明
 
