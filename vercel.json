@@ -6,6 +6,10 @@
       "dest": "/api/web.go"
     },
     {
+      "src": "/favicon.ico",
+      "dest": "/api/favicon.go"
+    },
+    {
       "src": "/vercel/.*",
       "methods": [
         "POST"

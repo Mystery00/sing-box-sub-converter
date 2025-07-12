@@ -41,6 +41,9 @@ func (s *Server) setupRoutes() {
 	s.router.GET("/", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(indexHtml))
 	})
+	s.router.GET("/favicon.ico", func(c *gin.Context) {
+		c.Data(http.StatusOK, "image/x-icon", favicon)
+	})
 
 	// API routes
 	s.router.GET("/api/generate", s.handleGenerate)

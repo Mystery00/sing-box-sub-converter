@@ -1,5 +1,7 @@
 # sing-box-sub-converter
 
+![icon](icon.png)
+
 sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具，它提供了 HTTP API 接口，可以从多个订阅源获取节点信息，并将其合并到自定义的配置模板中。
 
 ## 项目架构
@@ -48,6 +50,14 @@ sing-box-sub-converter 是一个用于合并和转换 sing-box 配置的工具�
 8. 返回最终配置给客户端
 
 ## 如何运行
+
+### 直接使用
+
+[https://sing-box-sub-converter-eta.vercel.app](https://sing-box-sub-converter-eta.vercel.app)
+
+**重要：Vercel会在运行日志中打印节点订阅地址信息，因此建议通过Docker的方式进行私有部署**
+**重要：Vercel会在运行日志中打印节点订阅地址信息，因此建议通过Docker的方式进行私有部署**
+**重要：Vercel会在运行日志中打印节点订阅地址信息，因此建议通过Docker的方式进行私有部署**
 
 ### Vercel 部署
 
