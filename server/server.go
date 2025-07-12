@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"sing-box-sub-converter/internal/config"
-	"sing-box-sub-converter/internal/converter"
-	"sing-box-sub-converter/internal/template"
+	"sing-box-sub-converter/config"
+	"sing-box-sub-converter/converter"
+	"sing-box-sub-converter/template"
 	"strings"
 )
 

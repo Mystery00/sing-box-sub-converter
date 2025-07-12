@@ -2,7 +2,7 @@ package template
 
 import (
 	"fmt"
-	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/converter/types"
 	"strings"
 )
 

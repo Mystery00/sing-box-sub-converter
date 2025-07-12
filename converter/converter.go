@@ -1,9 +1,9 @@
 package converter
 
 import (
-	clash2 "sing-box-sub-converter/internal/converter/clash"
-	content2 "sing-box-sub-converter/internal/converter/content"
-	"sing-box-sub-converter/internal/converter/types"
+	clash2 "sing-box-sub-converter/converter/clash"
+	content2 "sing-box-sub-converter/converter/content"
+	"sing-box-sub-converter/converter/types"
 )
 
 type SubscriptionParser interface {

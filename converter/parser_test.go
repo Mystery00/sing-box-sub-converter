@@ -1,7 +1,7 @@
 package converter
 
 import (
-	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/converter/types"
 	"testing"
 )
 

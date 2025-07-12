@@ -3,8 +3,8 @@ package main
 import (
 	"log/slog"
 	"os"
-	"sing-box-sub-converter/internal/config"
-	"sing-box-sub-converter/internal/server"
+	"sing-box-sub-converter/config"
+	"sing-box-sub-converter/server"
 )
 
 func main() {

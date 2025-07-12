@@ -7,8 +7,8 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"sing-box-sub-converter/internal/converter"
-	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/converter"
+	"sing-box-sub-converter/converter/types"
 	"strings"
 )
 

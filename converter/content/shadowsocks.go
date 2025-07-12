@@ -3,7 +3,7 @@ package content
 import (
 	"fmt"
 	"net/url"
-	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/converter/types"
 	"sing-box-sub-converter/utils"
 	"strconv"
 	"strings"

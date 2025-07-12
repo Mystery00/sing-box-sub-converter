@@ -3,7 +3,7 @@ package clash
 import (
 	"fmt"
 	"gopkg.in/yaml.v3"
-	"sing-box-sub-converter/internal/converter/types"
+	"sing-box-sub-converter/converter/types"
 )
 
 type ProtocolConverter interface {
@@ -19,13 +19,13 @@ type Clash struct {
 }
 
 func NewClash() *Clash {
-	converters := make([]ProtocolConverter, 0)
-
-	converters = append(converters, shadowsocks{})
-	converters = append(converters, trojan{})
-	converters = append(converters, hysteria2{})
-	converters = append(converters, vless{})
-	converters = append(converters, vmess{})
+	converters := []ProtocolConverter{
+		shadowsocks{},
+		trojan{},
+		hysteria2{},
+		vless{},
+		vmess{},
+	}
 
 	converterMap := make(map[types.ProxyNodeType]ProtocolConverter)
 	for _, protocolConverter := range converters {
