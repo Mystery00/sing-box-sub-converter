@@ -34,6 +34,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.docker_image_tag_arch }}
+          cache-from: type=gha,scope=sing-box-sub-converter-amd64
+          cache-to: type=gha,mode=max,scope=sing-box-sub-converter-amd64
 
   build-arm64:
     runs-on: ubuntu-24.04-arm
@@ -62,6 +64,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: ${{ env.docker_image_tag_arch }}
+          cache-from: type=gha,scope=sing-box-sub-converter-arm64
+          cache-to: type=gha,mode=max,scope=sing-box-sub-converter-arm64
 
   publish-manifest:
     runs-on: ubuntu-latest
