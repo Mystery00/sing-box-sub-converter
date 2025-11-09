@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine as builder
+FROM golang:1.25-alpine as builder
 COPY . /usr/local/go/src/sing-box-sub-converter
 WORKDIR /usr/local/go/src/sing-box-sub-converter
 RUN GO111MODULE=on go build -o /usr/bin/sing-box-sub-converter sing-box-sub-converter
