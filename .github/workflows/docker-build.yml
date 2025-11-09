@@ -91,17 +91,6 @@ jobs:
           set -euxo pipefail
           docker buildx imagetools create --tag "$repo:$version" "$repo:${version}-amd64" "$repo:${version}-arm64"
           docker buildx imagetools create --tag "$repo:latest"  "$repo:latest-amd64" "$repo:latest-arm64"
-      - name: Cleanup arch-suffixed tags
-        run: |
-          set -euxo pipefail
-          rm_cmd="docker buildx imagetools rm"
-          if ! docker buildx imagetools rm --help >/dev/null 2>&1; then
-            rm_cmd="docker manifest rm"
-          fi
-          $rm_cmd "$repo:${version}-amd64" || true
-          $rm_cmd "$repo:${version}-arm64" || true
-          $rm_cmd "$repo:latest-amd64" || true
-          $rm_cmd "$repo:latest-arm64" || true
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
