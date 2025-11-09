@@ -2,7 +2,6 @@ package converter
 
 import (
 	"fmt"
-	mapset "github.com/deckarep/golang-set/v2"
 	"log/slog"
 	"sing-box-sub-converter/config"
 	"sing-box-sub-converter/converter/types"
@@ -10,6 +9,8 @@ import (
 	"sing-box-sub-converter/utils"
 	"strings"
 	"time"
+
+	mapset "github.com/deckarep/golang-set/v2"
 )
 
 // ProcessSubscribes 处理所有订阅
@@ -37,6 +38,7 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 			list, err = parser.Parse(subscriptionContent, subscribe.Tag)
 			subType = parser.SubType()
 			if err == nil {
+				slog.Debug(fmt.Sprintf("解析成功，共 %d 个节点", len(list)))
 				break
 			}
 			slog.Info(fmt.Sprintf("使用%s解析订阅失败，尝试其他方式", subType))
