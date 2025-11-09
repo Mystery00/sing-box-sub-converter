@@ -7,38 +7,97 @@ env:
   DOCKER_NAMESPACE: mystery0
   DOCKER_NAME: sing-box-sub-converter
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  build-amd64:
+    runs-on: ubuntu-24.04
     if: "!contains(github.event.head_commit.message, 'ci skip')"
     steps:
       - uses: actions/checkout@v4
       - name: Parse image tag
         run: |
-          version=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
-          docker_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:$version"
-          docker_latest_image_tag="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}:latest"
+          version=${GITHUB_REF#refs/tags/}
+          repo="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}"
           echo "version=$version" >> $GITHUB_ENV
-          echo "docker_image_tag=$docker_image_tag,$docker_latest_image_tag" >> $GITHUB_ENV
+          echo "repo=$repo" >> $GITHUB_ENV
+          echo "docker_image_tag_arch=$repo:${version}-amd64,$repo:latest-amd64" >> $GITHUB_ENV
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      - name: Build and push
+      - name: Build and push (amd64)
         uses: docker/build-push-action@v6
         with:
           context: .
-          platforms: |
-            linux/amd64
-            linux/arm64
+          platforms: linux/amd64
           file: ./Dockerfile
-          builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ env.docker_image_tag }}
+          tags: ${{ env.docker_image_tag_arch }}
+
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse image tag
+        run: |
+          version=${GITHUB_REF#refs/tags/}
+          repo="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}"
+          echo "version=$version" >> $GITHUB_ENV
+          echo "repo=$repo" >> $GITHUB_ENV
+          echo "docker_image_tag_arch=$repo:${version}-arm64,$repo:latest-arm64" >> $GITHUB_ENV
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build and push (arm64)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/arm64
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.docker_image_tag_arch }}
+
+  publish-manifest:
+    runs-on: ubuntu-latest
+    needs: [build-amd64, build-arm64]
+    if: "!contains(github.event.head_commit.message, 'ci skip')"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse image tag
+        run: |
+          version=${GITHUB_REF#refs/tags/}
+          repo="${{ env.DOCKER_NAMESPACE }}/${{ env.DOCKER_NAME }}"
+          echo "version=$version" >> $GITHUB_ENV
+          echo "repo=$repo" >> $GITHUB_ENV
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Create multi-arch manifests
+        run: |
+          set -euxo pipefail
+          docker buildx imagetools create --tag "$repo:$version" "$repo:${version}-amd64" "$repo:${version}-arm64"
+          docker buildx imagetools create --tag "$repo:latest"  "$repo:latest-amd64" "$repo:latest-arm64"
+      - name: Cleanup arch-suffixed tags
+        run: |
+          set -euxo pipefail
+          rm_cmd="docker buildx imagetools rm"
+          if ! docker buildx imagetools rm --help >/dev/null 2>&1; then
+            rm_cmd="docker manifest rm"
+          fi
+          $rm_cmd "$repo:${version}-amd64" || true
+          $rm_cmd "$repo:${version}-arm64" || true
+          $rm_cmd "$repo:latest-amd64" || true
+          $rm_cmd "$repo:latest-arm64" || true
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         with:
