@@ -1,7 +1,6 @@
 package server
 
 import (
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"sing-box-sub-converter/converter"
 	"sing-box-sub-converter/template"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
@@ -81,7 +82,7 @@ func (s *Server) handleGenerate(c *gin.Context) {
 }
 
 func handleGenerateConfigForSubscription(c *gin.Context, configs map[string]any, subscribes []config.Subscription) {
-	nodes, err := converter.ProcessSubscribes(subscribes)
+	nodes, subHeader, err := converter.ProcessSubscribes(subscribes)
 	if err != nil {
 		slog.Error("处理订阅失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to process subscribes"})
@@ -94,6 +95,9 @@ func handleGenerateConfigForSubscription(c *gin.Context, configs map[string]any,
 		slog.Error("合并配置失败", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to merge config"})
 		return
+	}
+	if subHeader != "" {
+		c.Header("Subscription-Userinfo", subHeader)
 	}
 	c.JSON(http.StatusOK, finalConfig)
 }

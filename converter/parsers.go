@@ -14,8 +14,9 @@ import (
 )
 
 // ProcessSubscribes 处理所有订阅
-func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, error) {
+func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, string, error) {
 	nodes := make([]types.ProxyNode, 0)
+	var resultSubInfo *fetcher.SubInfo = nil
 
 	for _, subscribe := range subscribes {
 		// 获取节点
@@ -29,6 +30,7 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 			slog.Warn("订阅内容为空，跳过")
 			continue
 		}
+		resultSubInfo = subInfo
 
 		// 使用不同格式尝试解析
 		var subType string
@@ -83,7 +85,12 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, err
 	// 处理重复节点名称
 	nodes = processDuplicateNodeTag(nodes)
 
-	return nodes, nil
+	subHeader := ""
+	if len(subscribes) == 1 && resultSubInfo != nil {
+		subHeader = fmt.Sprintf("upload=%d; download=%d; total=%d; expire=%d", resultSubInfo.Upload, resultSubInfo.Download, resultSubInfo.Total, resultSubInfo.Expire)
+	}
+
+	return nodes, subHeader, nil
 }
 
 func calculateRemainDays(timeInMills int64) string {
