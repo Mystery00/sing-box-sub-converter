@@ -1,5 +1,3 @@
-## 0.0.6
-
 ### 新增
 
 - **订阅用户信息回传**：当仅请求单个订阅时，通过 HTTP 响应头 `Subscription-Userinfo` 返回 `upload`、`download`、`total`、`expire` 字段，便于客户端展示流量用量和到期时间（适用于 `/api/generate`、`/api/quickstart`、Vercel 接口）。
@@ -20,16 +18,7 @@
 
 - **正则表达式预编译**：旗帜 Emoji 匹配正则由每次调用时动态编译改为包级别变量，避免重复编译开销。
 
-### 依赖更新
-
-- Go 工具链升级至 `1.26.1`
-- `gin` 升级至 `v1.12.0`
-- `bytedance/sonic` 升级至 `v1.15.0`
-- `quic-go` 升级至 `v0.59.0`
-- 其余间接依赖同步升级
-
 ### 其他
 
 - 移除从未被调用的死代码文件 `converter/singbox.go`
-- 移除 GitHub Actions 中无用的架构后缀标签清理步骤
 - Vercel 接口响应 `Content-Type` 补充 `charset=utf-8`
