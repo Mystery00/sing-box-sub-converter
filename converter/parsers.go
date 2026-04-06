@@ -94,6 +94,9 @@ func ProcessSubscribes(subscribes []config.Subscription) ([]types.ProxyNode, str
 }
 
 func calculateRemainDays(timeInMills int64) string {
+	if timeInMills == 0 {
+		return "永久"
+	}
 	expireTime := time.Unix(timeInMills, 0)
 	remainDays := time.Until(expireTime).Hours() / 24
 	return fmt.Sprintf("%d天", int(remainDays))
