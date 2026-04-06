@@ -7,20 +7,16 @@ import (
 )
 
 func handleFilter(nodes []types.ProxyNode, filters []OutboundFilter) []types.ProxyNode {
-	var results []types.ProxyNode
+	results := nodes
 	for _, filter := range filters {
 		if len(filter.Keywords) == 0 {
 			continue
 		}
 		switch filter.Action {
 		case "include":
-			results = filterIncludeKeywords(nodes, filter.Keywords, filter.ForTag)
-			break
+			results = filterIncludeKeywords(results, filter.Keywords, filter.ForTag)
 		case "exclude":
-			results = filterExcludeKeywords(nodes, filter.Keywords, filter.ForTag)
-			break
-		default:
-			break
+			results = filterExcludeKeywords(results, filter.Keywords, filter.ForTag)
 		}
 	}
 	return results

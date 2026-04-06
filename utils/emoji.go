@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+var flagEmojiPattern = regexp.MustCompile(`[\x{1F1E6}-\x{1F1FF}]{2}`)
+
 func AddNodeEmoji(name string) string {
 	if name == "" {
 		return name
@@ -25,12 +27,10 @@ func RemoveNodeEmoji(name string) string {
 	if !containsEmoji(name) {
 		return strings.TrimSpace(name)
 	}
-	emojiPattern := regexp.MustCompile(`[\x{1F1E6}-\x{1F1FF}]{2}`)
-	r := emojiPattern.ReplaceAllString(name, "")
+	r := flagEmojiPattern.ReplaceAllString(name, "")
 	return strings.TrimSpace(r)
 }
 
 func containsEmoji(s string) bool {
-	emojiPattern := regexp.MustCompile(`[\x{1F1E6}-\x{1F1FF}]{2}`)
-	return emojiPattern.MatchString(s)
+	return flagEmojiPattern.MatchString(s)
 }

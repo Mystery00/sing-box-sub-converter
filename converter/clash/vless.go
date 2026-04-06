@@ -40,7 +40,7 @@ func (v vless) Parse(m map[string]any) (resultList []types.ProxyNode, err error)
 	if d, exist := m["name"]; exist {
 		n.Tag = strings.TrimSpace(d.(string))
 	} else {
-		n.Tag = fmt.Sprintf("%s_hysteria2", utils.GenName(8))
+		n.Tag = fmt.Sprintf("%s_vless", utils.GenName(8))
 	}
 	if d, exist := m["server"]; exist {
 		n.Address = strings.TrimSpace(d.(string))

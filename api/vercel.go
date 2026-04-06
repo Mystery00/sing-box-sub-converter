@@ -43,7 +43,7 @@ func Vercel(w http.ResponseWriter, r *http.Request) {
 		UserAgent: userAgent,
 	})
 	// 处理订阅
-	nodes, err := converter.ProcessSubscribes(subscribes)
+	nodes, _, err := converter.ProcessSubscribes(subscribes)
 	if err != nil {
 		slog.Error("处理订阅失败", "error", err)
 		w.Write([]byte("Failed to process subscribes"))

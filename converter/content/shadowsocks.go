@@ -52,8 +52,12 @@ func (s shadowsocks) Parse(content string) (resultList []types.ProxyNode, err er
 	if u.Query().Get("plugin") != "" {
 		pluginStr := u.Query().Get("plugin")
 		i := strings.Index(pluginStr, ";")
-		innerNode.Plugin = pluginStr[0:i]
-		innerNode.PluginOpts = pluginStr[i+1:]
+		if i < 0 {
+			innerNode.Plugin = pluginStr
+		} else {
+			innerNode.Plugin = pluginStr[0:i]
+			innerNode.PluginOpts = pluginStr[i+1:]
+		}
 	}
 	n.ProxyDetail = innerNode
 	resultList = append(resultList, n)

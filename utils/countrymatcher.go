@@ -153,54 +153,17 @@ var CountryPatterns = map[string]*regexp.Regexp{
 
 // renameNodeTagWithEmoji 根据字符串内容匹配国家/地区代码，并重命名字符串
 func renameNodeTagWithEmoji(originTagName string) string {
-	// 排除特殊关键词的情况
-	if strings.Contains(originTagName, "INFO") ||
-		strings.Contains(originTagName, "FREE") ||
-		strings.Contains(originTagName, "GRPC") ||
-		strings.Contains(originTagName, "IEPL") ||
-		strings.Contains(originTagName, "ARP") ||
-		strings.Contains(originTagName, "WARP") ||
-		strings.Contains(originTagName, "JMS") ||
-		strings.Contains(originTagName, "GER") ||
-		strings.Contains(originTagName, "GIA") ||
-		strings.Contains(originTagName, "CN2GI") ||
-		strings.Contains(originTagName, "TLS") ||
-		strings.Contains(originTagName, "RELAY") ||
-		strings.Contains(originTagName, "BGP") {
-		// 如果包含这些特殊关键词，则继续检查其他匹配模式，而不是直接返回
-	}
-
 	for countryCode, pattern := range CountryPatterns {
-		// 跳过那些带有特殊关键词标记的匹配器
-		if strings.Contains(countryCode, "INFO") ||
-			strings.Contains(countryCode, "FREE") ||
-			strings.Contains(countryCode, "GRPC") ||
-			strings.Contains(countryCode, "IEPL") ||
-			strings.Contains(countryCode, "ARP") ||
-			strings.Contains(countryCode, "WARP") ||
-			strings.Contains(countryCode, "JMS") ||
-			strings.Contains(countryCode, "GER") ||
-			strings.Contains(countryCode, "GIA") ||
-			strings.Contains(countryCode, "CN2GI") ||
-			strings.Contains(countryCode, "TLS") ||
-			strings.Contains(countryCode, "RELAY") ||
-			strings.Contains(countryCode, "BGP") {
-			continue
-		}
-
-		// 检查字符串是否已经以国家代码开头
+		// 检查字符串是否已经以正确的国家代码开头
 		if strings.HasPrefix(originTagName, countryCode) {
 			return countryCode + " " + strings.TrimSpace(originTagName[len(countryCode):])
 		}
 
 		// 使用正则表达式搜索匹配
 		if pattern.MatchString(originTagName) {
-			// 特殊处理 🇺🇲 开头的情况
-			if strings.HasPrefix(originTagName, "🇺🇲") {
-				return countryCode + " " + strings.TrimSpace(originTagName[len("🇺🇲"):])
-			} else {
-				return countryCode + " " + originTagName
-			}
+			// 移除已有的旗帜前缀（如 🇺🇲 → 🇺🇸），避免出现两个旗帜
+			tagWithoutFlag := strings.TrimSpace(flagEmojiPattern.ReplaceAllString(originTagName, ""))
+			return countryCode + " " + tagWithoutFlag
 		}
 	}
 

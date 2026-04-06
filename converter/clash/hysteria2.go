@@ -34,7 +34,8 @@ func (hysteria2) Handle(m map[string]any) bool {
 func (h hysteria2) Parse(m map[string]any) (resultList []types.ProxyNode, err error) {
 	resultList = make([]types.ProxyNode, 0)
 	innerNode := Hysteria2Node{
-		Tls: make(map[string]any),
+		Tls:  make(map[string]any),
+		Obfs: make(map[string]string),
 	}
 	n := types.ProxyNode{}
 	if d, exist := m["name"]; exist {
@@ -73,7 +74,10 @@ func (h hysteria2) Parse(m map[string]any) (resultList []types.ProxyNode, err er
 		innerNode.Obfs["password"] = d.(string)
 	}
 	if d, exist := m["fingerprint"]; exist {
-		innerNode.Obfs["password"] = d.(string)
+		innerNode.Tls["utls"] = map[string]any{
+			"enabled":     true,
+			"fingerprint": d.(string),
+		}
 	}
 	if d, exist := m["alpn"]; exist {
 		innerNode.Tls["alpn"] = d

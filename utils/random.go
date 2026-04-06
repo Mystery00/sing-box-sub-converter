@@ -14,6 +14,9 @@ const (
 )
 
 func GenName(n int) string {
+	if n <= 0 {
+		n = 8
+	}
 	b := make([]byte, n)
 	// A rand.Int63() generates 63 random bits, enough for letterIdxMax letters!
 	for i, cache, remain := n-1, rand.Int63(), letterIdxMax; i >= 0; {
