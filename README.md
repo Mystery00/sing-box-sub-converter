@@ -275,6 +275,7 @@ Content-Type: application/json
 | VLESS       | ✅        | ❌      |
 | Hysteria2   | ✅        | ❌      |
 | VMess       | ✅        | ❌      |
+| AnyTls      | ✅        | ❌      |
 
 ### 备注
 

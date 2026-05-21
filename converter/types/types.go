@@ -10,6 +10,7 @@ const (
 	ProxyNodeTypeHysteria2   ProxyNodeType = "hysteria2"
 	ProxyNodeTypeVless       ProxyNodeType = "vless"
 	ProxyNodeTypeVmess       ProxyNodeType = "vmess"
+	ProxyNodeTypeAnyTls      ProxyNodeType = "anytls"
 )
 
 type ProxyNode struct {

@@ -2,8 +2,9 @@ package clash
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
 	"sing-box-sub-converter/converter/types"
+
+	"gopkg.in/yaml.v3"
 )
 
 type ProtocolConverter interface {
@@ -25,6 +26,7 @@ func NewClash() *Clash {
 		hysteria2{},
 		vless{},
 		vmess{},
+		anytls{},
 	}
 
 	converterMap := make(map[types.ProxyNodeType]ProtocolConverter)
