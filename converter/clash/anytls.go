@@ -114,17 +114,27 @@ func (anytls) Convert2SingBox(node types.ProxyNode) map[string]any {
 	pp, _ := strconv.Atoi(node.Port)
 	m["server_port"] = uint16(pp)
 	m["password"] = innerNode.Password
-	m["idle_session_check_interval"] = innerNode.IdleSessionCheckInterval
-	m["idle_session_timeout"] = innerNode.IdleSessionTimeout
-	m["min_idle_session"] = innerNode.MinIdleSession
-	m["tcp_fast_open"] = innerNode.TcpFastOpen
+	if innerNode.IdleSessionCheckInterval != "" {
+		m["idle_session_check_interval"] = innerNode.IdleSessionCheckInterval
+	}
+	if innerNode.IdleSessionTimeout != "" {
+		m["idle_session_timeout"] = innerNode.IdleSessionTimeout
+	}
+	if innerNode.MinIdleSession != 0 {
+		m["min_idle_session"] = innerNode.MinIdleSession
+	}
+	if innerNode.TcpFastOpen {
+		m["tcp_fast_open"] = innerNode.TcpFastOpen
+	}
 	tls := innerNode.Tls
 	if innerNode.UTls != nil {
-		if innerNode.Tls == nil {
-			innerNode.Tls = make(map[string]any)
+		if tls == nil {
+			tls = make(map[string]any)
 		}
 		tls["utls"] = innerNode.UTls
 	}
-	m["tls"] = tls
+	if tls != nil {
+		m["tls"] = tls
+	}
 	return m
 }
