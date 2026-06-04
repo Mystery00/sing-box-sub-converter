@@ -5,7 +5,6 @@ import (
 	"sing-box-sub-converter/converter/types"
 	"sing-box-sub-converter/utils"
 	"strconv"
-	"strings"
 )
 
 type AnyTlsNode struct {
@@ -13,9 +12,8 @@ type AnyTlsNode struct {
 	IdleSessionCheckInterval string
 	IdleSessionTimeout       string
 	MinIdleSession           int
-	TcpFastOpen              bool
+	Detour                   string
 	Tls                      map[string]any
-	UTls                     map[string]any
 }
 
 type anytls struct {
@@ -34,70 +32,59 @@ func (anytls) Handle(m map[string]any) bool {
 
 func (s anytls) Parse(m map[string]any) (resultList []types.ProxyNode, err error) {
 	resultList = make([]types.ProxyNode, 0)
-	innerNode := AnyTlsNode{}
+	innerNode := AnyTlsNode{
+		Tls: map[string]any{
+			"enabled":  true,
+			"insecure": false,
+		},
+	}
+	if d, exist := getString(m, "dialer-proxy"); exist {
+		innerNode.Detour = d
+	} else if d, exist := getString(m, "detour"); exist {
+		innerNode.Detour = d
+	}
+
 	n := types.ProxyNode{}
-	if d, exist := m["name"]; exist {
-		n.Tag = strings.TrimSpace(d.(string))
+	if d, exist := getString(m, "name"); exist {
+		n.Tag = d
 	} else {
 		n.Tag = fmt.Sprintf("%s_anytls", utils.GenName(8))
 	}
-	if d, exist := m["server"]; exist {
-		n.Address = strings.TrimSpace(d.(string))
+	if d, exist := getString(m, "server"); exist {
+		n.Address = d
+		innerNode.Tls["server_name"] = d
 	}
-	if d, exist := m["port"]; exist {
-		p := d.(int)
+	if p, exist := getInt(m, "port"); exist {
 		n.Port = fmt.Sprintf("%d", p)
 	}
-	if d, exist := m["password"]; exist {
-		innerNode.Password = d.(string)
+	if d, exist := getString(m, "password"); exist {
+		innerNode.Password = d
 	}
-	if d, exist := m["idle-session-check-interval"]; exist {
-		p := d.(int)
+	if p, exist := getInt(m, "idle-session-check-interval"); exist {
 		innerNode.IdleSessionCheckInterval = fmt.Sprintf("%ds", p)
 	}
-	if d, exist := m["idle-session-timeout"]; exist {
-		p := d.(int)
+	if p, exist := getInt(m, "idle-session-timeout"); exist {
 		innerNode.IdleSessionTimeout = fmt.Sprintf("%ds", p)
 	}
-	if d, exist := m["min-idle-session"]; exist {
-		innerNode.MinIdleSession = d.(int)
+	if d, exist := getInt(m, "min-idle-session"); exist {
+		innerNode.MinIdleSession = d
 	}
-	if d, exist := m["tfo"]; exist {
-		innerNode.TcpFastOpen = d.(bool)
+	if d, exist := getBool(m, "skip-cert-verify"); exist {
+		innerNode.Tls["insecure"] = d
 	}
-
-	innerNode.Tls = make(map[string]any)
-	innerNode.UTls = make(map[string]any)
-
-	// 解析TLS相关配置
-	innerNode.Tls["enabled"] = true
-
-	if d, exist := m["skip-cert-verify"]; exist {
-		innerNode.Tls["insecure"] = d.(bool)
+	if d, exist := getString(m, "sni"); exist {
+		innerNode.Tls["server_name"] = d
 	}
-
-	if d, exist := m["sni"]; exist {
-		if len(innerNode.Tls) == 0 {
-			innerNode.Tls = make(map[string]any)
-		}
-		innerNode.Tls["server_name"] = d.(string)
-	}
-
-	if d, exist := m["alpn"]; exist {
+	if d, exist := getStringSlice(m, "alpn"); exist {
 		innerNode.Tls["alpn"] = d
 	}
-
-	if d, exist := m["client-fingerprint"]; exist {
-		innerNode.UTls["enabled"] = true
-		innerNode.UTls["fingerprint"] = d.(string)
-	}
-
-	// 如果没有配置TLS，则设置为nil
-	if len(innerNode.Tls) == 0 {
-		innerNode.Tls = nil
-	}
-	if len(innerNode.UTls) == 0 {
-		innerNode.UTls = nil
+	if d, exist := getString(m, "client-fingerprint"); exist {
+		if fingerprint, ok := normalizeUtlsFingerprint(d); ok {
+			innerNode.Tls["utls"] = map[string]any{
+				"enabled":     true,
+				"fingerprint": fingerprint,
+			}
+		}
 	}
 
 	n.ProxyDetail = innerNode
@@ -123,18 +110,11 @@ func (anytls) Convert2SingBox(node types.ProxyNode) map[string]any {
 	if innerNode.MinIdleSession != 0 {
 		m["min_idle_session"] = innerNode.MinIdleSession
 	}
-	if innerNode.TcpFastOpen {
-		m["tcp_fast_open"] = innerNode.TcpFastOpen
+	if innerNode.Detour != "" {
+		m["detour"] = innerNode.Detour
 	}
-	tls := innerNode.Tls
-	if innerNode.UTls != nil {
-		if tls == nil {
-			tls = make(map[string]any)
-		}
-		tls["utls"] = innerNode.UTls
-	}
-	if tls != nil {
-		m["tls"] = tls
+	if innerNode.Tls != nil {
+		m["tls"] = innerNode.Tls
 	}
 	return m
 }
