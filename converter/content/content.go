@@ -24,6 +24,7 @@ func NewContent() *Content {
 	converters := make([]ProtocolConverter, 0)
 
 	converters = append(converters, shadowsocks{})
+	converters = append(converters, vmess{})
 
 	converterMap := make(map[types.ProxyNodeType]ProtocolConverter)
 	for _, protocolConverter := range converters {
