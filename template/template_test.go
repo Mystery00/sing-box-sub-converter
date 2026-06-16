@@ -67,4 +67,71 @@ func TestMergeToConfigOutboundTemplate(t *testing.T) {
 			t.Errorf("节点未套用模板字段 domain_resolver，实际: %v", node["domain_resolver"])
 		}
 	})
+
+	t.Run("嵌套tls深度合并且节点字段优先", func(t *testing.T) {
+		config := map[string]any{
+			"outbounds": []any{
+				map[string]any{
+					"type": "outbound-template",
+					"tag":  "AmyTelecom",
+					"tls": map[string]any{
+						"utls": map[string]any{"enabled": true, "fingerprint": "chrome"},
+					},
+					"server_port": 9999, // 应被节点真实端口覆盖
+				},
+				map[string]any{
+					"type":      "selector",
+					"tag":       "PROXY",
+					"outbounds": []any{"{all}"},
+				},
+			},
+		}
+		nodes := []types.ProxyNode{ssNode("AmyHK", "AmyTelecom")}
+		result, err := MergeToConfig(config, nodes)
+		if err != nil {
+			t.Fatalf("MergeToConfig 返回错误: %v", err)
+		}
+		node := findOutbound(result["outbounds"].([]any), "AmyHK")
+		if node == nil {
+			t.Fatalf("未找到节点 AmyHK")
+		}
+		tls, _ := node["tls"].(map[string]any)
+		utls, _ := tls["utls"].(map[string]any)
+		if utls["fingerprint"] != "chrome" {
+			t.Errorf("模板嵌套 tls.utls 未保留: %v", node["tls"])
+		}
+		// ss 节点真实端口为 8388（uint16），应覆盖模板的 9999
+		if node["server_port"] != uint16(8388) {
+			t.Errorf("节点端口应覆盖模板 server_port，实际: %v", node["server_port"])
+		}
+	})
+
+	t.Run("无匹配模板的节点保持原样", func(t *testing.T) {
+		config := map[string]any{
+			"outbounds": []any{
+				map[string]any{
+					"type":            "outbound-template",
+					"tag":             "OtherSub",
+					"domain_resolver": "dns_other",
+				},
+				map[string]any{
+					"type":      "selector",
+					"tag":       "PROXY",
+					"outbounds": []any{"{all}"},
+				},
+			},
+		}
+		nodes := []types.ProxyNode{ssNode("AmyHK", "AmyTelecom")}
+		result, err := MergeToConfig(config, nodes)
+		if err != nil {
+			t.Fatalf("MergeToConfig 返回错误: %v", err)
+		}
+		node := findOutbound(result["outbounds"].([]any), "AmyHK")
+		if node == nil {
+			t.Fatalf("未找到节点 AmyHK")
+		}
+		if _, exist := node["domain_resolver"]; exist {
+			t.Errorf("未匹配模板的节点不应被套用字段")
+		}
+	})
 }
