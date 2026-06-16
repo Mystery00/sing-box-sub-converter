@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sing-box-sub-converter/converter"
 	"sing-box-sub-converter/converter/types"
+	"sing-box-sub-converter/utils"
 	"strings"
 )
 
@@ -55,6 +56,34 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 	if !ok {
 		return nil, fmt.Errorf("无效的outbounds配置")
 	}
+
+	// 提取出站模板：type=="outbound-template" 的条目，按 tag 建立映射，并从 outbounds 中剔除
+	outboundTemplates := make(map[string]map[string]any)
+	filteredOutbounds := make([]any, 0, len(outbounds))
+	for _, o := range outbounds {
+		outbound, ok := o.(map[string]any)
+		if !ok {
+			filteredOutbounds = append(filteredOutbounds, o)
+			continue
+		}
+		if outbound["type"] == "outbound-template" {
+			tag, _ := outbound["tag"].(string)
+			tpl := make(map[string]any)
+			for k, v := range outbound {
+				if k == "type" || k == "tag" {
+					continue
+				}
+				tpl[k] = v
+			}
+			if tag != "" {
+				outboundTemplates[tag] = tpl
+			}
+			continue
+		}
+		filteredOutbounds = append(filteredOutbounds, outbound)
+	}
+	outbounds = filteredOutbounds
+
 	validNodes := make([]types.ProxyNode, 0)
 	subInfoNodes := make([]string, 0)
 	for _, node := range nodes {
@@ -135,6 +164,9 @@ func MergeToConfig(config map[string]any, nodes []types.ProxyNode) (map[string]a
 
 	for _, node := range appendNodes {
 		o := converter.GetParser(node.SubType).Convert2SingBoxOutbounds(node)
+		if tpl, ok := outboundTemplates[node.FromSub]; ok {
+			o = utils.DeepMerge(tpl, o)
+		}
 		outbounds = append(outbounds, o)
 	}
 	if len(subInfoNodes) != 0 {
