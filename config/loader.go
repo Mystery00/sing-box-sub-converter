@@ -1,11 +1,11 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strings"
+	"sync/atomic"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
@@ -17,59 +17,59 @@ const (
 	envDefaultSubUrl         = "SUB_URL"
 )
 
-var cfg ProvidersGlobalConfig
+var cfg atomic.Pointer[ProvidersGlobalConfig]
 
 func LoadProvidersConfig() error {
-	configHome := os.Getenv(envSubConfigHome)
-	if configHome == "" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			slog.Error("获取当前工作目录失败", "error", err)
-			return err
-		}
-		configHome = cwd
+	configHome, err := filepath.Abs(os.Getenv(envSubConfigHome))
+	if err != nil {
+		return fmt.Errorf("获取订阅配置目录失败：%w", err)
 	}
-
-	viper.SetConfigName(strings.TrimSuffix(defaultProvidersFilename, filepath.Ext(defaultProvidersFilename)))
-	viper.SetConfigType("json")
-	viper.AddConfigPath(configHome)
-
-	if err := viper.ReadInConfig(); err != nil {
-		var configFileNotFoundError viper.ConfigFileNotFoundError
-		if errors.As(err, &configFileNotFoundError) {
-			slog.Info("未找到providers.json，正在创建默认文件", "path", filepath.Join(configHome, defaultProvidersFilename))
-			if err := createDefaultProvidersFile(filepath.Join(configHome, defaultProvidersFilename)); err != nil {
-				slog.Error("创建默认providers.json文件失败", "error", err)
-				return err
-			}
-			// Attempt to read again after creation
-			if err := viper.ReadInConfig(); err != nil {
-				slog.Error("创建默认文件后读取providers.json失败", "error", err)
-				return err
-			}
-		}
-	}
-
-	if err := viper.Unmarshal(&cfg); err != nil {
-		slog.Error("无法将providers.json解码为结构体", "error", err)
+	path, err := providersConfigPath(configHome)
+	if err != nil {
 		return err
 	}
-
-	slog.Info("providers.json加载成功", "path", viper.ConfigFileUsed())
-	slog.Debug("已加载配置", "config", cfg)
-
-	viper.WatchConfig()
-	viper.OnConfigChange(func(e fsnotify.Event) {
-		slog.Info("providers.json已更改，正在重新加载", "event", e.Name)
-		if err := viper.Unmarshal(&cfg); err != nil {
-			slog.Error("重新加载providers.json出错", "error", err)
-		} else {
-			slog.Info("providers.json重新加载成功")
-			slog.Debug("已重新加载配置", "config", cfg)
+	v := viper.New()
+	v.SetConfigFile(path)
+	load := func() error {
+		if err := v.ReadInConfig(); err != nil {
+			return fmt.Errorf("读取订阅配置 %s 失败：%w", path, err)
 		}
+		var next ProvidersGlobalConfig
+		if err := v.Unmarshal(&next); err != nil {
+			return fmt.Errorf("解码订阅配置 %s 失败：%w", path, err)
+		}
+		cfg.Store(&next)
+		return nil
+	}
+	if err := load(); err != nil {
+		return err
+	}
+	slog.Info("订阅配置加载成功", "path", path)
+	v.OnConfigChange(func(fsnotify.Event) {
+		// Viper 即使读取失败也会触发回调，重新读取以确认本次修改有效。
+		if err := load(); err != nil {
+			slog.Error("重新加载订阅配置失败，继续使用上次配置", "error", err)
+			return
+		}
+		slog.Info("订阅配置重新加载成功", "path", path)
 	})
-
+	v.WatchConfig()
 	return nil
+}
+
+func providersConfigPath(dir string) (string, error) {
+	for _, name := range []string{defaultProvidersFilename, "providers.yaml", "providers.yml"} {
+		path := filepath.Join(dir, name)
+		_, err := os.Stat(path)
+		if err == nil {
+			return path, nil
+		}
+		if !os.IsNotExist(err) {
+			return "", fmt.Errorf("检查订阅配置 %s 失败：%w", path, err)
+		}
+	}
+	path := filepath.Join(dir, defaultProvidersFilename)
+	return path, createDefaultProvidersFile(path)
 }
 
 func createDefaultProvidersFile(filePath string) error {
@@ -100,7 +100,7 @@ func createDefaultProvidersFile(filePath string) error {
 	v.Set("exclude_protocol", defaultConfig.ExcludeProtocol)
 	v.Set("show_sub_in_nodes", defaultConfig.ShowSubInNodes)
 
-	if err := v.WriteConfigAs(filePath); err != nil {
+	if err := v.SafeWriteConfigAs(filePath); err != nil {
 		slog.Error("使用Viper写入默认providers.json失败", "path", filePath, "error", err)
 		return err
 	}
@@ -110,5 +110,8 @@ func createDefaultProvidersFile(filePath string) error {
 }
 
 func GetConfig() ProvidersGlobalConfig {
-	return cfg
+	if current := cfg.Load(); current != nil {
+		return *current
+	}
+	return ProvidersGlobalConfig{}
 }

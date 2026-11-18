@@ -84,7 +84,7 @@ docker run -d -p 5000:5000 mystery0/sing-box-sub-converter:latest
 | TEMPLATE_DIR    | 配置模板目录                    | config_templates               |
 | SUB_CONFIG_HOME | 订阅配置文件目录                  | 当前工作目录                         |
 | SAFE_DIR        | 本地文件订阅的安全目录               | 无（不限制）                         |
-| SUB_URL         | 未挂载providers.json时的默认订阅链接 | http://127.0.0.1:1080/test.txt |
+| SUB_URL         | 自动创建订阅配置时使用的默认订阅链接 | http://127.0.0.1:1080/test.txt |
 
 ## API 接口
 
@@ -204,7 +204,25 @@ Content-Type: application/json
 
 ### 订阅配置
 
-在 `providers.json` 文件中配置订阅源：
+服务启动时在 `SUB_CONFIG_HOME`（默认当前工作目录）依次查找 `providers.json`、`providers.yaml`、`providers.yml`，读取第一个存在的文件。三个文件都不存在时，服务使用 `SUB_URL` 或其默认值创建 `providers.json`。
+
+需要注释时可使用 `providers.yaml`，字段名与 JSON 相同：
+
+```yaml
+subscribes:
+  - url: "https://example.com/sub"
+    tag: "主订阅"
+    prefix: "主线"
+    userAgent: "clash"
+prefix: true  # 在节点名称前添加前缀
+emoji: true
+exclude_protocol: ""
+show_sub_in_nodes: true
+```
+
+从 JSON 迁移时，将旧文件改名备份，再重启服务以选中 YAML。后续编辑选中的文件会触发热重载。
+
+已有的 `providers.json` 可继续使用：
 
 ```json
 {

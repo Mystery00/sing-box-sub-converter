@@ -33,7 +33,7 @@ go mod tidy
 | `TEMPLATE_DIR` | 配置模板目录 | `config_templates` |
 | `SUB_CONFIG_HOME` | 订阅配置文件目录 | 当前工作目录 |
 | `SAFE_DIR` | 本地文件订阅的安全目录限制 | 无 |
-| `SUB_URL` | 未挂载 providers.json 时的默认订阅链接 | `http://127.0.0.1:1080/test.txt` |
+| `SUB_URL` | 自动创建订阅配置时使用的默认订阅链接 | `http://127.0.0.1:1080/test.txt` |
 
 ## 架构概览
 
@@ -52,7 +52,7 @@ HTTP 请求 → server/server.go
 
 ### 核心包职责
 
-- **`config/`** — 全局配置（`providers.json`），使用 `viper` + `fsnotify` 实现热重载；`types.go` 定义 `ProvidersGlobalConfig` 和 `Subscription`
+- **`config/`** — 全局配置（依次查找 `providers.json`、`providers.yaml`、`providers.yml`），使用 `viper` + `fsnotify` 实现热重载；`types.go` 定义 `ProvidersGlobalConfig` 和 `Subscription`
 - **`fetcher/`** — 订阅内容获取，两种实现：`file.go`（`file://` 前缀）和 `remote.go`（HTTP/HTTPS），同时解析 `Subscription-Userinfo` 响应头为 `SubInfo`
 - **`converter/`** — 订阅解析与节点处理的核心；`converter.go` 定义 `SubscriptionParser` 接口；`parsers.go` 定义 `ProcessSubscribes` 主流程；`singbox.go` 负责 Shadowsocks 转 sing-box 格式的兜底实现
   - **`converter/clash/`** — 解析 Clash YAML 格式，支持 SS/Trojan/VLESS/Hysteria2/VMess
