@@ -1,3 +1,5 @@
+## 0.1.1
+
 ### 新增
 
 - 订阅配置支持 `providers.yaml` 和 `providers.yml`，可以用 `#` 为配置项添加注释。字段名与 `providers.json` 相同。
